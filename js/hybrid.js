@@ -1,7 +1,5 @@
-// Hybrid Calculator JavaScript
 let hybridSelectedMethod = '';
 
-// Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     setupScenarioCards();
     setupInputListeners();
@@ -10,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     performHybridCalculation(); // Начальный расчет с MAB
 });
 
-// Настройка таблеток сценариев
 function setupScenarioCards() {
     const pills = document.querySelectorAll('.scenario-pill');
     
@@ -40,7 +37,6 @@ function setupScenarioCards() {
     });
 }
 
-// Настройка слушателей
 function setupInputListeners() {
     const inputs = document.querySelectorAll('#hybridDevices, #hybridConcurrent, #hybridBurstWindow, #hybridHeadroom, #hybridGatewayOverhead, #hybridNodeCount');
     const checkboxes = document.querySelectorAll('#hybridOcspEnabled, #hybridGatewayEnabled');
@@ -75,7 +71,6 @@ function setupInputListeners() {
     });
 }
 
-// Применение пресетов
 function applyPreset(type) {
     const presets = {
         'small': { 
@@ -135,7 +130,6 @@ function applyPreset(type) {
     performHybridCalculation(); // Пересчитываем после применения пресета
 }
 
-// Переключение расширенных настроек
 function toggleAdvanced() {
     const content = document.getElementById('advancedContent');
     const icon = document.querySelector('.expand-icon');
@@ -149,12 +143,10 @@ function toggleAdvanced() {
     }
 }
 
-// Обновление превью
 function updatePreview() {
     // Функция оставлена для возможных будущих обновлений UI
 }
 
-// Показ предупреждения о масштабировании
 function showScalingWarning(devices) {
     const warningDiv = document.getElementById('scalingWarning');
     const messageDiv = document.getElementById('scalingMessage');
@@ -172,13 +164,11 @@ function showScalingWarning(devices) {
     }, 10000);
 }
 
-// Скрытие предупреждения при изменении количества устройств
 function hideScalingWarning() {
     const warningDiv = document.getElementById('scalingWarning');
     warningDiv.style.display = 'none';
 }
 
-// Получение входных значений
 function getHybridInputValues() {
     // Если метод не выбран, используем MAB по умолчанию
     if (!hybridSelectedMethod) {
@@ -214,7 +204,6 @@ function getHybridInputValues() {
     };
 }
 
-// Выполнение расчета
 function performHybridCalculation() {
     try {
         const inputs = getHybridInputValues();
@@ -231,7 +220,6 @@ function performHybridCalculation() {
     }
 }
 
-// Отображение результатов
 function displayHybridResults(results) {
     // Бизнес-показатели - таблица требований к аппаратному обеспечению
     const inputs = getHybridInputValues();
@@ -263,7 +251,6 @@ function displayHybridResults(results) {
     window.lastCalculationResults = results;
 }
 
-// Экспорт в PDF в стиле документации Efros DO с поддержкой кириллицы
 function exportToPDF() {
     if (!window.lastCalculationResults) {
         alert('Сначала выполните расчет');
