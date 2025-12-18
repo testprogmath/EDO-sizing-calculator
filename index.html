@@ -8,69 +8,55 @@
     <link rel="stylesheet" href="css/calculator.css">
 </head>
 <body>
-    <!-- SVG Icons -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-      <!-- Settings/Configuration Icon -->
       <symbol id="icon-settings" viewBox="0 0 24 24">
         <path fill="currentColor" d="M12 15.5a3.5 3.5 0 1 1 0-7a3.5 3.5 0 0 1 0 7zM19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65c-.03-.24-.24-.42-.49-.42h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/>
       </symbol>
       
-      <!-- Chart/Analytics Icon -->
       <symbol id="icon-chart" viewBox="0 0 24 24">
         <path fill="currentColor" d="M5 9.2h3v5.6h-3zm4.5-5.2h3v10.8h-3zm4.5 3.2h3v7.6h-3zM3 21v-2h18v2z"/>
       </symbol>
       
-      <!-- Warning Icon -->
       <symbol id="icon-warning" viewBox="0 0 24 24">
         <path fill="currentColor" d="M1 21h22l-11-19zm12-3h-2v-2h2zm0-4h-2v-4h2z"/>
       </symbol>
       
-      <!-- Info Icon -->
       <symbol id="icon-info" viewBox="0 0 24 24">
         <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 17h-2v-6h2v6zm0-8h-2V7h2v4z"/>
       </symbol>
       
-      <!-- Tools Icon -->
       <symbol id="icon-tools" viewBox="0 0 24 24">
         <path fill="currentColor" d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9c-2-2-5-2.4-7.4-1.3L9 6L6 9L1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
       </symbol>
       
-      <!-- Rocket/Fast Icon -->
       <symbol id="icon-rocket" viewBox="0 0 24 24">
         <path fill="currentColor" d="M9.5 2A4.5 4.5 0 0 0 5 6.5V11h2.5V6.5A2.5 2.5 0 0 1 9.5 4h5A2.5 2.5 0 0 1 17 6.5V11h2.5V6.5A4.5 4.5 0 0 0 15 2H9.5zm-5 9.5V16h2v3.5A2.5 2.5 0 0 0 9 22h6a2.5 2.5 0 0 0 2.5-2.5V16h2v-4.5A1.5 1.5 0 0 0 18 10H6a1.5 1.5 0 0 0-1.5 1.5z"/>
       </symbol>
       
-      <!-- Building/Office Icon -->
       <symbol id="icon-building" viewBox="0 0 24 24">
         <path fill="currentColor" d="M5 3v18h6v-7h2v7h6V3H5zm2 2h2v2H7V5zm4 0h2v2h-2V5zm4 0h2v2h-2V5zm-8 4h2v2H7V9zm4 0h2v2h-2V9zm4 0h2v2h-2V9zm-8 4h2v2H7v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/>
       </symbol>
       
-      <!-- Lightning/Fast Icon -->
       <symbol id="icon-lightning" viewBox="0 0 24 24">
         <path fill="currentColor" d="M7 2v11h3v9l7-12h-4l4-8z"/>
       </symbol>
       
-      <!-- Business/Briefcase Icon -->
       <symbol id="icon-briefcase" viewBox="0 0 24 24">
         <path fill="currentColor" d="M10 2h4a2 2 0 0 1 2 2v2h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4V4a2 2 0 0 1 2-2zm0 2v2h4V4h-4zm-4 4v11h12V8H6z"/>
       </symbol>
       
-      <!-- Document/PDF Icon -->
       <symbol id="icon-document" viewBox="0 0 24 24">
         <path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
       </symbol>
       
-      <!-- Download Icon -->
       <symbol id="icon-download" viewBox="0 0 24 24">
         <path fill="currentColor" d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
       </symbol>
       
-      <!-- Copy Icon -->
       <symbol id="icon-copy" viewBox="0 0 24 24">
         <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
       </symbol>
       
-      <!-- Search Icon -->
       <symbol id="icon-search" viewBox="0 0 24 24">
         <path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
       </symbol>
@@ -82,11 +68,9 @@
                 <div class="logo-section">
                     <img src="images/efros-logo.svg" alt="Efros Defence Operations" style="height: 45px; width: auto;">
                 </div>
-                <!-- Navigation menu removed -->
             </div>
         </header>
 
-        <!-- Hero Section -->
         <section style="background: white; padding: 60px 20px; text-align: center; border-bottom: 1px solid #e0e0e0;">
             <div style="max-width: 800px; margin: 0 auto;">
                 <h1 style="font-size: 48px; font-weight: 300; color: #24A7B3; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase;">
@@ -110,11 +94,9 @@
 
         <main class="main-content" id="calculator-section">
             <div class="hybrid-layout">
-                <!-- Панель ввода -->
                 <div class="input-panel">
                     <h3><svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #24A7B3;"><use href="#icon-rocket"/></svg> Быстрая настройка</h3>
                     
-                    <!-- Быстрые пресеты -->
                     <div class="quick-presets">
                         <div class="preset-button" onclick="applyPreset('small')">
                             <span class="title"><svg width="14" height="14" style="vertical-align: middle; margin-right: 3px; color: #666;"><use href="#icon-building"/></svg> Малый офис</span>
@@ -130,7 +112,6 @@
                         </div>
                     </div>
                     
-                    <!-- Выбор сценария -->
                     <div class="form-group">
                         <label>Сценарий аутентификации</label>
                         <div class="scenario-pills">
@@ -140,7 +121,6 @@
                         </div>
                     </div>
                     
-                    <!-- OCSP Section -->
                     <div class="ocsp-section" id="hybridOcspSection" style="display: none;">
                         <div class="ocsp-header">
                             <span class="icon"><svg width="16" height="16" style="vertical-align: middle; color: #24A7B3;"><use href="#icon-search"/></svg></span>
@@ -159,7 +139,6 @@
                         </div>
                     </div>
                     
-                    <!-- Основные параметры -->
                     <div class="form-group">
                         <label for="hybridDevices">
                             Количество устройств (шт)
@@ -182,7 +161,6 @@
                         </select>
                     </div>
                     
-                    <!-- Расширенные настройки -->
                     <div class="advanced-section">
                         <div class="advanced-header" onclick="toggleAdvanced()">
                             <span class="expand-icon">▶</span>

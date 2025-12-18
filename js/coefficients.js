@@ -1,6 +1,4 @@
-// Коэффициенты для расчетов NAC
 const COEFFICIENTS = {
-    // Коэффициенты для EAP-TLS
     'EAP-TLS': {
         nominalRpsPerPod: 20.0,          // Комфортный RPS на один pod (без OCSP)
         cpuPeakPerRps: 0.09,              // Пиковое потребление CPU (core) на 1 RPS/pod
@@ -9,7 +7,6 @@ const COEFFICIENTS = {
         baselineNodeCpuP95: 5.1           // Базовая нагрузка на ноду CPU
     },
     
-    // Коэффициенты для MAB
     'MAB': {
         nominalRpsPerPod: 27.0,           // Комфортный RPS на один pod
         cpuPeakPerRps: 0.08871,           // Пиковое потребление CPU (core) на 1 RPS/pod
@@ -17,7 +14,6 @@ const COEFFICIENTS = {
         baselineNodeCpuP95: 4.0           // Базовая нагрузка на ноду CPU
     },
     
-    // Коэффициенты для PEAP
     'PEAP': {
         nominalRpsPerPod: 12.0,           // Комфортный RPS на один pod
         cpuPeakPerRps: 0.21,              // Пиковое потребление CPU (core) на 1 RPS/pod
@@ -25,7 +21,6 @@ const COEFFICIENTS = {
         baselineNodeCpuP95: 4.0           // Базовая нагрузка на ноду CPU
     },
     
-    // Общие коэффициенты
     common: {
         safetyFactor: 1.25,               // Запас между peak и limit по ресурсам pod
         maxNodeUtilization: 0.7,          // Максимальная целевая загрузка ноды (70%)
@@ -34,7 +29,6 @@ const COEFFICIENTS = {
     }
 };
 
-// Профили конфигурации в зависимости от количества устройств
 const PROFILES = {
     'EAP-TLS': [
         { maxDevices: 5000, name: 'A: до 5k устройств', minPods: 3, nodeCpu: 8, nodeMemory: 24 },
@@ -61,13 +55,10 @@ const PROFILES = {
     ]
 };
 
-// Стандартные значения CPU для нод (округление вверх)
 const CPU_SIZES = [4, 8, 12, 16, 24, 32, 48, 64];
 
-// Стандартные значения памяти для нод (округление вверх)
 const MEMORY_SIZES = [8, 16, 24, 32, 48, 64, 96, 128];
 
-// Функция для получения профиля по количеству устройств
 function getProfile(authMethod, deviceCount) {
     const profiles = PROFILES[authMethod];
     if (!profiles) return null;
@@ -78,11 +69,9 @@ function getProfile(authMethod, deviceCount) {
         }
     }
     
-    // Если больше максимального - возвращаем последний профиль
     return profiles[profiles.length - 1];
 }
 
-// Функция для округления CPU до стандартного размера
 function roundUpToCpuSize(value) {
     for (const size of CPU_SIZES) {
         if (value <= size) return size;
@@ -90,7 +79,6 @@ function roundUpToCpuSize(value) {
     return CPU_SIZES[CPU_SIZES.length - 1];
 }
 
-// Функция для округления памяти до стандартного размера
 function roundUpToMemorySize(value) {
     for (const size of MEMORY_SIZES) {
         if (value <= size) return size;
@@ -98,15 +86,11 @@ function roundUpToMemorySize(value) {
     return MEMORY_SIZES[MEMORY_SIZES.length - 1];
 }
 
-// Функция для вычисления динамического baseline памяти
-// Формула: 10 + devices * 0.0006
 function getBaselineNodeMemGiB(devices) {
     return 10.0 + devices * 0.0006;
 }
 
-// Новая логика выбора памяти ноды на основе IF/MAX из Excel
 function getNodeMemorySize(devices, calculatedMemory, authMethod) {
-    // Логика для EAP-TLS и MAB (одинаковая)
     if (authMethod === 'EAP-TLS' || authMethod === 'MAB') {
         if (devices <= 5000) {
             return Math.max(24, calculatedMemory);
@@ -119,7 +103,6 @@ function getNodeMemorySize(devices, calculatedMemory, authMethod) {
         }
     }
     
-    // Логика для PEAP (немного отличается)
     if (authMethod === 'PEAP') {
         if (devices <= 5000) {
             return Math.max(24, calculatedMemory);
@@ -132,6 +115,5 @@ function getNodeMemorySize(devices, calculatedMemory, authMethod) {
         }
     }
     
-    // Для случаев вне диапазона или неизвестного метода
     return calculatedMemory;
 }
