@@ -1,29 +1,20 @@
-// Основная логика калькулятора NAC
 
-// Главная функция расчета
 function calculate() {
-    // Получаем входные значения
     const inputs = getInputValues();
     
-    // Валидация
     if (!validateInputs(inputs)) {
         return;
     }
     
-    // Выполняем расчеты
     const results = performCalculations(inputs);
     
-    // Отображаем результаты
     displayResults(results);
     
-    // Показываем секцию результатов
     document.getElementById('results').style.display = 'block';
     
-    // Скроллим к результатам
     document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Получение значений из формы
 function getInputValues() {
     return {
         devices: parseInt(document.getElementById('devices').value),
@@ -38,7 +29,6 @@ function getInputValues() {
     };
 }
 
-// Валидация входных данных
 function validateInputs(inputs) {
     const errors = [];
     
@@ -70,7 +60,6 @@ function validateInputs(inputs) {
     return true;
 }
 
-// Основные расчеты
 function performCalculations(inputs) {
     const coeffs = COEFFICIENTS[inputs.authMethod];
     const commonCoeffs = COEFFICIENTS.common;
@@ -102,7 +91,6 @@ function performCalculations(inputs) {
     const minPods = profile.minPods;
     const recommendedPods = Math.max(calculatedPods, minPods);
     
-    // Округляем количество подов кратно количеству нод
     const finalPods = Math.ceil(recommendedPods / inputs.nodeCount) * inputs.nodeCount;
     
     // 7. Фактический RPS на под
@@ -179,7 +167,6 @@ function performCalculations(inputs) {
     };
 }
 
-// Отображение результатов
 function displayResults(results) {
     // Бизнес-показатели
     document.getElementById('profileName').textContent = results.profileName;
@@ -206,7 +193,6 @@ function displayResults(results) {
     window.lastCalculationResults = results;
 }
 
-// Обновление отображения требований к СУБД
 function updateDatabaseRequirements(dbReq) {
     const reqList = document.querySelector('.requirements-list ul');
     if (reqList) {
@@ -222,12 +208,10 @@ function updateDatabaseRequirements(dbReq) {
     }
 }
 
-// Экспорт в PDF (заглушка - нужна библиотека jsPDF)
 function exportToPDF() {
     alert('Для экспорта в PDF требуется подключение библиотеки jsPDF.\nПока что используйте экспорт в Excel или копирование результатов.');
 }
 
-// Экспорт в Excel (простой CSV)
 function exportToExcel() {
     if (!window.lastCalculationResults) {
         alert('Сначала выполните расчет');
@@ -267,7 +251,6 @@ function exportToExcel() {
     document.body.removeChild(link);
 }
 
-// Копирование результатов в буфер обмена
 function copyToClipboard() {
     if (!window.lastCalculationResults) {
         alert('Сначала выполните расчет');
@@ -312,7 +295,6 @@ function copyToClipboard() {
     });
 }
 
-// Расчет требований к СУБД в зависимости от нагрузки и сценария
 function calculateDatabaseRequirements(inputs, targetRps) {
     const baseRequirements = {
         postgresql: "15+",
