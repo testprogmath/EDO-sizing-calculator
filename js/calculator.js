@@ -332,12 +332,6 @@ function calculateDatabaseRequirements(inputs, targetRps) {
         scaledStorage = 750;
     }
     
-    // Дополнительные требования для EAP-TLS с OCSP
-    if (inputs.authMethod === 'EAP-TLS' && inputs.ocspEnabled) {
-        scaledCpu += 2;
-        scaledMemory += 8;
-        scaledStorage += 200;
-    }
     
     return {
         postgresql: baseRequirements.postgresql,

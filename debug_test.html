@@ -63,7 +63,6 @@
     <script src="js/coefficients.js"></script>
     <script>
         function runDebugTest() {
-            // Данные из Excel листа Вычисления для сравнения
             const excelData = {
                 devices: 18000,
                 authMethod: 'PEAP',
@@ -75,7 +74,6 @@
                 gatewayOverhead: 10,
                 ocspEnabled: false,
                 
-                // Значения из Excel
                 excel_baseline: 20.8,  // Coefficients!C12
                 excel_nodeHeadroom: 1.15, // Coefficients!C8
                 excel_rpsPerPod: 10.3125,  // E22
@@ -99,7 +97,6 @@
             const coeffs = COEFFICIENTS[excelData.authMethod];
             const commonCoeffs = COEFFICIENTS.common;
             
-            // Рассчитаем все промежуточные значения
             const concurrentDevices = excelData.devices * (excelData.concurrentPct / 100);
             const baseRps = concurrentDevices / excelData.burstWindow;
             const rpsWithGateway = baseRps * (1 + excelData.gatewayOverhead / 100);
