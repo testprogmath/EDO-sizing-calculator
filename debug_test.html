@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отладка калькулятора NAC</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .values-grid {
+            display: grid;
+            grid-template-columns: 300px 150px 150px 100px;
+            gap: 5px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+        .grid-header {
+            background: #f8f9fa;
+            padding: 8px;
+            font-weight: bold;
+            border-bottom: 2px solid #ddd;
+        }
+        .grid-item {
+            padding: 5px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .excel-val { background: #e8f5e8; }
+        .js-val { background: #e8f4f8; }
+        .match { background: #d4edda; color: #155724; }
+        .mismatch { background: #f8d7da; color: #721c24; }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Отладка формул калькулятора NAC</h1>
+    
+    <div class="debug-section">
+        <h3>Тест соответствия с Excel (18000 устройств, PEAP)</h3>
+        <button onclick="runDebugTest()">Запустить отладку</button>
+        <div id="debug-results"></div>
+    </div>
+
+    <script src="js/coefficients.js"></script>
+    <script>
+        function runDebugTest() {
+            // Данные из Excel листа Вычисления для сравнения
+            const excelData = {
+                devices: 18000,
+                authMethod: 'PEAP',
+                nodeCount: 3,
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                ocspEnabled: false,
+                
+                // Значения из Excel
+                excel_baseline: 20.8,  // Coefficients!C12
+                excel_nodeHeadroom: 1.15, // Coefficients!C8
+                excel_rpsPerPod: 10.3125,  // E22
+                excel_podMemLimit: 1024,   // E27 (должно быть 1024 минимум)
+                excel_calculatedMemory: 28.52,  // E38
+                excel_finalNodeMemory: 64   // Kalkulyator!E7 после IF/MAX
+            };
+            
+            let html = '<pre>';
+            html += '=== ПОШАГОВАЯ ОТЛАДКА ===\n\n';
+            
+            // 1. Baseline память
+            const jsBaseline = getBaselineNodeMemGiB(excelData.devices);
+            html += `1. Baseline память:\n`;
+            html += `   Формула: 10 + ${excelData.devices} * 0.0006\n`;
+            html += `   Excel: ${excelData.excel_baseline} ГБ\n`;
+            html += `   JS:    ${jsBaseline.toFixed(2)} ГБ\n`;
+            html += `   Совпадение: ${Math.abs(jsBaseline - excelData.excel_baseline) < 0.01 ? '✓' : '✗'}\n\n`;
+            
+            // 2. Полный расчет для проверки RPS per Pod
+            const coeffs = COEFFICIENTS[excelData.authMethod];
+            const commonCoeffs = COEFFICIENTS.common;
+            
+            // Рассчитаем все промежуточные значения
+            const concurrentDevices = excelData.devices * (excelData.concurrentPct / 100);
+            const baseRps = concurrentDevices / excelData.burstWindow;
+            const rpsWithGateway = baseRps * (1 + excelData.gatewayOverhead / 100);
+            const targetRps = rpsWithGateway * (1 + excelData.headroom / 100);
+            
+            const calculatedPods = Math.ceil(targetRps / coeffs.nominalRpsPerPod);
+            const profile = getProfile(excelData.authMethod, excelData.devices);
+            const finalPods = Math.max(calculatedPods, profile.minPods);
+            
+            const rpsPerPod = targetRps / finalPods;
+            
+            html += `2. Расчет RPS per Pod:\n`;
+            html += `   Concurrent devices: ${concurrentDevices}\n`;
+            html += `   Base RPS: ${baseRps.toFixed(2)}\n`;
+            html += `   With gateway: ${rpsWithGateway.toFixed(2)}\n`;
+            html += `   Target RPS: ${targetRps.toFixed(2)}\n`;
+            html += `   Final pods: ${finalPods}\n`;
+            html += `   RPS per Pod: ${rpsPerPod.toFixed(4)}\n`;
+            html += `   Excel RPS per Pod: ${excelData.excel_rpsPerPod}\n`;
+            html += `   Совпадение: ${Math.abs(rpsPerPod - excelData.excel_rpsPerPod) < 0.01 ? '✓' : '✗'}\n\n`;
+            
+            // 3. Расчет лимита памяти пода
+            const podMemLimitMiB = Math.max(
+                1024,
+                Math.ceil(rpsPerPod * coeffs.memPeakPerRpsMiB * commonCoeffs.safetyFactor / 64) * 64
+            );
+            
+            html += `3. Лимит памяти пода:\n`;
+            html += `   Формула: MAX(1024, CEILING(${rpsPerPod.toFixed(4)} * ${coeffs.memPeakPerRpsMiB} * ${commonCoeffs.safetyFactor} / 64) * 64)\n`;
+            html += `   JS: ${podMemLimitMiB} MiB\n`;
+            html += `   Excel: ${excelData.excel_podMemLimit} MiB\n`;
+            html += `   Совпадение: ${podMemLimitMiB === excelData.excel_podMemLimit ? '✓' : '✗'}\n\n`;
+            
+            // 4. Формула C38
+            const jsCalculatedMemory = (rpsPerPod * podMemLimitMiB / excelData.nodeCount / 1024 + jsBaseline) * excelData.excel_nodeHeadroom;
+            
+            html += `4. Формула C38:\n`;
+            html += `   (${rpsPerPod.toFixed(4)} * ${podMemLimitMiB} / ${excelData.nodeCount} / 1024 + ${jsBaseline.toFixed(2)}) * ${excelData.excel_nodeHeadroom}\n`;
+            
+            const step1 = rpsPerPod * podMemLimitMiB / excelData.nodeCount / 1024;
+            const step2 = step1 + jsBaseline;
+            const step3 = step2 * excelData.excel_nodeHeadroom;
+            
+            html += `   Пошагово:\n`;
+            html += `   - RPS расчет: ${rpsPerPod.toFixed(4)} * ${podMemLimitMiB} / ${excelData.nodeCount} / 1024 = ${step1.toFixed(4)}\n`;
+            html += `   - Плюс baseline: ${step1.toFixed(4)} + ${jsBaseline.toFixed(2)} = ${step2.toFixed(2)}\n`;
+            html += `   - С headroom: ${step2.toFixed(2)} * ${excelData.excel_nodeHeadroom} = ${step3.toFixed(2)}\n\n`;
+            html += `   Excel C38: ${excelData.excel_calculatedMemory} ГБ\n`;
+            html += `   JS C38:    ${jsCalculatedMemory.toFixed(2)} ГБ\n`;
+            html += `   Совпадение: ${Math.abs(jsCalculatedMemory - excelData.excel_calculatedMemory) < 0.1 ? '✓' : '✗'}\n\n`;
+            
+            // 5. IF/MAX логика
+            const jsFinalMemory = getNodeMemorySize(excelData.devices, jsCalculatedMemory, excelData.authMethod);
+            
+            html += `5. IF/MAX логика для PEAP с ${excelData.devices} устройств:\n`;
+            html += `   Правило: devices <= 20000, поэтому MAX(64, ${jsCalculatedMemory.toFixed(2)})\n`;
+            html += `   JS результат: ${jsFinalMemory} ГБ\n`;
+            html += `   Excel результат: ${excelData.excel_finalNodeMemory} ГБ\n`;
+            html += `   Совпадение: ${jsFinalMemory === excelData.excel_finalNodeMemory ? '✓' : '✗'}\n\n`;
+            
+            html += '=== ИТОГ ===\n';
+            const allMatches = [
+                Math.abs(jsBaseline - excelData.excel_baseline) < 0.01,
+                Math.abs(rpsPerPod - excelData.excel_rpsPerPod) < 0.01,
+                podMemLimitMiB === excelData.excel_podMemLimit,
+                Math.abs(jsCalculatedMemory - excelData.excel_calculatedMemory) < 0.1,
+                jsFinalMemory === excelData.excel_finalNodeMemory
+            ];
+            
+            const passedTests = allMatches.filter(x => x).length;
+            html += `Пройдено тестов: ${passedTests}/${allMatches.length}\n`;
+            
+            if (passedTests === allMatches.length) {
+                html += 'Все формулы работают корректно! ✓';
+            } else {
+                html += 'Есть расхождения, требуется доработка ✗';
+            }
+            
+            html += '</pre>';
+            document.getElementById('debug-results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

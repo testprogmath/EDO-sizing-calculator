@@ -113,8 +113,10 @@
             const rawNodeCpu = (podCpuLimitCores * finalPods / inputs.nodeCount) + coeffs.baselineNodeCpuP95;
             const nodeCpu = roundUpToCpuSize(rawNodeCpu);
             
-            const rawNodeMemory = (podMemLimitMiB * finalPods / inputs.nodeCount / 1024) + commonCoeffs.baselineNodeMemGiBP95;
-            const nodeMemory = roundUpToMemorySize(rawNodeMemory * commonCoeffs.nodeHeadroom);
+            // Новая формула памяти согласно C38: =(C22*C27/Inputs!$C10/1024+Coefficients!$C$12)*Coefficients!$C8
+            const baselineMemGiB = getBaselineNodeMemGiB(inputs.devices);
+            const rawCalculatedMemory = (rpsPerPod * podMemLimitMiB / inputs.nodeCount / 1024 + baselineMemGiB) * commonCoeffs.nodeHeadroom;
+            const nodeMemory = getNodeMemorySize(inputs.devices, rawCalculatedMemory, inputs.authMethod);
             
             const totalCpu = nodeCpu * inputs.nodeCount;
             const totalMemory = nodeMemory * inputs.nodeCount;

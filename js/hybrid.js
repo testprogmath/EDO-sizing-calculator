@@ -216,9 +216,19 @@ function getHybridInputValues() {
 
 // Выполнение расчета
 function performHybridCalculation() {
-    const inputs = getHybridInputValues();
-    const results = performCalculations(inputs);
-    displayHybridResults(results);
+    try {
+        const inputs = getHybridInputValues();
+        console.log('Hybrid inputs:', inputs);
+        
+        const results = performCalculations(inputs);
+        console.log('Calculation results:', results);
+        
+        displayHybridResults(results);
+    } catch (error) {
+        console.error('Error in hybrid calculation:', error);
+        // Показываем ошибку пользователю
+        alert('Ошибка расчета: ' + error.message);
+    }
 }
 
 // Отображение результатов

@@ -125,8 +125,11 @@ function performCalculations(inputs) {
     const rawNodeCpu = (podCpuLimitCores * finalPods / inputs.nodeCount) + coeffs.baselineNodeCpuP95;
     const nodeCpu = roundUpToCpuSize(rawNodeCpu);
     
-    const rawNodeMemory = (podMemLimitMiB * finalPods / inputs.nodeCount / 1024) + commonCoeffs.baselineNodeMemGiBP95;
-    const nodeMemory = roundUpToMemorySize(rawNodeMemory * commonCoeffs.nodeHeadroom);
+    // Новая формула памяти согласно C38: =(C22*C27/Inputs!$C10/1024+Coefficients!$C$12)*Coefficients!$C8
+    // где C22 = rpsPerPod, C27 = podMemLimit, C10 = nodeCount, C12 = baseline, C8 = nodeHeadroom  
+    const baselineMemGiB = getBaselineNodeMemGiB(inputs.devices);
+    const rawCalculatedMemory = (rpsPerPod * podMemLimitMiB / inputs.nodeCount / 1024 + baselineMemGiB) * commonCoeffs.nodeHeadroom;
+    const nodeMemory = getNodeMemorySize(inputs.devices, rawCalculatedMemory, inputs.authMethod);
     
     // 12. Общие ресурсы кластера
     const totalCpu = nodeCpu * inputs.nodeCount;
@@ -136,6 +139,9 @@ function performCalculations(inputs) {
     const dbRequirements = calculateDatabaseRequirements(inputs, targetRps);
     
     return {
+        // Входные данные (для копирования)
+        inputs: inputs,
+        
         // Профиль
         profileName: `${inputs.authMethod}: ${profile.name}`,
         
@@ -167,7 +173,8 @@ function performCalculations(inputs) {
             rpsWithHeadroom: rpsWithHeadroom.toFixed(2),
             calculatedPods: calculatedPods,
             rawNodeCpu: rawNodeCpu.toFixed(2),
-            rawNodeMemory: rawNodeMemory.toFixed(2)
+            rawCalculatedMemory: rawCalculatedMemory.toFixed(2),
+            baselineMemGiB: baselineMemGiB.toFixed(2)
         }
     };
 }
@@ -268,11 +275,12 @@ function copyToClipboard() {
     }
     
     const results = window.lastCalculationResults;
+    console.log('Copy results:', results);
     
     let text = 'Результаты расчета калькулятора NAC\n';
     text += '=====================================\n\n';
     text += 'Конфигурация: ' + results.inputs.devices + ' устройств, ' + results.inputs.authMethod;
-    if (results.inputs.authMethod === 'EAP-TLS' && results.inputs.ocsp) {
+    if (results.inputs.authMethod === 'EAP-TLS' && results.inputs.ocspEnabled) {
         text += ' с OCSP';
     }
     text += '\n\n';

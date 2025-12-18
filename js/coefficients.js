@@ -30,7 +30,6 @@ const COEFFICIENTS = {
         safetyFactor: 1.25,               // Запас между peak и limit по ресурсам pod
         maxNodeUtilization: 0.7,          // Максимальная целевая загрузка ноды (70%)
         nodeHeadroom: 1.15,               // Запас на ноде
-        baselineNodeMemGiBP95: 10.0,      // Базовая нагрузка на ноду память (GiB)
         requestRatio: 0.6                 // Соотношение request/limit
     }
 };
@@ -97,4 +96,42 @@ function roundUpToMemorySize(value) {
         if (value <= size) return size;
     }
     return MEMORY_SIZES[MEMORY_SIZES.length - 1];
+}
+
+// Функция для вычисления динамического baseline памяти
+// Формула: 10 + devices * 0.0006
+function getBaselineNodeMemGiB(devices) {
+    return 10.0 + devices * 0.0006;
+}
+
+// Новая логика выбора памяти ноды на основе IF/MAX из Excel
+function getNodeMemorySize(devices, calculatedMemory, authMethod) {
+    // Логика для EAP-TLS и MAB (одинаковая)
+    if (authMethod === 'EAP-TLS' || authMethod === 'MAB') {
+        if (devices <= 5000) {
+            return Math.max(24, calculatedMemory);
+        } else if (devices <= 10000) {
+            return Math.max(32, calculatedMemory);
+        } else if (devices <= 15000) {
+            return Math.max(48, calculatedMemory);
+        } else if (devices <= 20000) {
+            return Math.max(48, calculatedMemory);
+        }
+    }
+    
+    // Логика для PEAP (немного отличается)
+    if (authMethod === 'PEAP') {
+        if (devices <= 5000) {
+            return Math.max(24, calculatedMemory);
+        } else if (devices <= 10000) {
+            return Math.max(32, calculatedMemory);
+        } else if (devices <= 15000) {
+            return Math.max(48, calculatedMemory);
+        } else if (devices <= 20000) {
+            return Math.max(64, calculatedMemory);
+        }
+    }
+    
+    // Для случаев вне диапазона или неизвестного метода
+    return calculatedMemory;
 }
