@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест калькулятора NAC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-case {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .result-item {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .expected { background: #e8f5e8; }
+        .calculated { background: #e8f4f8; }
+        .match { background: #d4edda; color: #155724; }
+        .mismatch { background: #f8d7da; color: #721c24; }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Тестирование калькулятора NAC</h1>
+    
+    <div class="test-case">
+        <h3>Тест 1: MAB, 8000 устройств (из Excel)</h3>
+        <button onclick="runTest1()">Запустить тест</button>
+        <div id="test1-results"></div>
+    </div>
+    
+    <div class="test-case">
+        <h3>Тест 2: EAP-TLS с OCSP, 5000 устройств</h3>
+        <button onclick="runTest2()">Запустить тест</button>
+        <div id="test2-results"></div>
+    </div>
+    
+    <div class="test-case">
+        <h3>Тест 3: PEAP, 15000 устройств</h3>
+        <button onclick="runTest3()">Запустить тест</button>
+        <div id="test3-results"></div>
+    </div>
+
+    <script src="js/coefficients.js"></script>
+    <script>
+        // Функция для выполнения расчетов (копия из calculator.js)
+        function performCalculations(inputs) {
+            const coeffs = COEFFICIENTS[inputs.authMethod];
+            const commonCoeffs = COEFFICIENTS.common;
+            
+            const concurrentDevices = inputs.devices * (inputs.concurrentPct / 100);
+            const baseRps = concurrentDevices / inputs.burstWindow;
+            
+            let rpsWithGateway = baseRps;
+            if (inputs.gatewayEnabled) {
+                rpsWithGateway = baseRps * (1 + inputs.gatewayOverhead / 100);
+            }
+            
+            const rpsWithHeadroom = rpsWithGateway * (1 + inputs.headroom / 100);
+            
+            let targetRps = rpsWithHeadroom;
+            if (inputs.authMethod === 'EAP-TLS' && inputs.ocspEnabled) {
+                targetRps = rpsWithHeadroom * (1 + coeffs.ocspOverheadPct / 100);
+            }
+            
+            const calculatedPods = Math.ceil(targetRps / coeffs.nominalRpsPerPod);
+            const profile = getProfile(inputs.authMethod, inputs.devices);
+            const minPods = profile.minPods;
+            const recommendedPods = Math.max(calculatedPods, minPods);
+            
+            const finalPods = Math.ceil(recommendedPods / inputs.nodeCount) * inputs.nodeCount;
+            
+            const rpsPerPod = targetRps / finalPods;
+            
+            const podCpuLimitCores = rpsPerPod * coeffs.cpuPeakPerRps * commonCoeffs.safetyFactor;
+            const podCpuLimitMCpu = Math.ceil(podCpuLimitCores * 1000 / 10) * 10;
+            
+            const podMemLimitMiB = Math.max(
+                1024,
+                Math.ceil(rpsPerPod * coeffs.memPeakPerRpsMiB * commonCoeffs.safetyFactor / 64) * 64
+            );
+            
+            const podCpuRequestMCpu = Math.ceil(podCpuLimitMCpu * commonCoeffs.requestRatio / 10) * 10;
+            const podMemRequestMiB = Math.ceil(podMemLimitMiB * commonCoeffs.requestRatio / 64) * 64;
+            
+            const rawNodeCpu = (podCpuLimitCores * finalPods / inputs.nodeCount) + coeffs.baselineNodeCpuP95;
+            const nodeCpu = roundUpToCpuSize(rawNodeCpu);
+            
+            const rawNodeMemory = (podMemLimitMiB * finalPods / inputs.nodeCount / 1024) + commonCoeffs.baselineNodeMemGiBP95;
+            const nodeMemory = roundUpToMemorySize(rawNodeMemory * commonCoeffs.nodeHeadroom);
+            
+            const totalCpu = nodeCpu * inputs.nodeCount;
+            const totalMemory = nodeMemory * inputs.nodeCount;
+            
+            return {
+                profileName: profile.name,
+                minPods: minPods,
+                recommendedPods: finalPods,
+                nodeCpu: nodeCpu,
+                nodeMemory: nodeMemory,
+                totalCpu: totalCpu,
+                totalMemory: totalMemory,
+                targetRps: targetRps.toFixed(2),
+                rpsPerPod: rpsPerPod.toFixed(2),
+                podCpuLimit: podCpuLimitMCpu,
+                podCpuRequest: podCpuRequestMCpu,
+                podMemLimit: podMemLimitMiB,
+                podMemRequest: podMemRequestMiB
+            };
+        }
+        
+        function compareResults(calculated, expected, elementId) {
+            let html = '<div class="results-grid">';
+            html += '<div><strong>Параметр</strong></div>';
+            html += '<div><strong>Ожидается</strong></div>';
+            html += '<div><strong>Получено</strong></div>';
+            
+            for (const key in expected) {
+                const calc = calculated[key] || 'N/A';
+                const exp = expected[key];
+                const match = String(calc) === String(exp);
+                const cssClass = match ? 'match' : 'mismatch';
+                
+                html += `<div>${key}</div>`;
+                html += `<div class="expected">${exp}</div>`;
+                html += `<div class="calculated ${cssClass}">${calc}</div>`;
+            }
+            
+            html += '</div>';
+            document.getElementById(elementId).innerHTML = html;
+        }
+        
+        function runTest1() {
+            const inputs = {
+                devices: 8000,
+                authMethod: 'MAB',
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                ocspEnabled: false,
+                nodeCount: 3
+            };
+            
+            const expected = {
+                profileName: 'B: 5k–10k',
+                minPods: 3,
+                recommendedPods: 3,
+                nodeCpu: 8,
+                nodeMemory: 32,
+                totalCpu: 24,
+                totalMemory: 96,
+                targetRps: '55.00',
+                podCpuLimit: 2030,
+                podMemLimit: 1024
+            };
+            
+            const calculated = performCalculations(inputs);
+            compareResults(calculated, expected, 'test1-results');
+        }
+        
+        function runTest2() {
+            const inputs = {
+                devices: 5000,
+                authMethod: 'EAP-TLS',
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                ocspEnabled: true,
+                nodeCount: 3
+            };
+            
+            const expected = {
+                profileName: 'A: до 5k устройств',
+                minPods: 3,
+                recommendedPods: 3,
+                nodeCpu: 8,
+                nodeMemory: 24,
+                totalCpu: 24,
+                totalMemory: 72,
+                targetRps: '39.06',
+                podCpuLimit: 1760,
+                podMemLimit: 1024
+            };
+            
+            const calculated = performCalculations(inputs);
+            compareResults(calculated, expected, 'test2-results');
+        }
+        
+        function runTest3() {
+            const inputs = {
+                devices: 15000,
+                authMethod: 'PEAP',
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                ocspEnabled: false,
+                nodeCount: 3
+            };
+            
+            const expected = {
+                profileName: 'D: 12k–15k',
+                minPods: 6,
+                recommendedPods: 6,
+                nodeCpu: 16,
+                nodeMemory: 64,
+                totalCpu: 48,
+                totalMemory: 192,
+                targetRps: '103.13',
+                podCpuLimit: 4540,
+                podMemLimit: 1536
+            };
+            
+            const calculated = performCalculations(inputs);
+            compareResults(calculated, expected, 'test3-results');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+// Коэффициенты для расчетов NAC
+const COEFFICIENTS = {
+    // Коэффициенты для EAP-TLS
+    'EAP-TLS': {
+        nominalRpsPerPod: 20.0,          // Комфортный RPS на один pod (без OCSP)
+        cpuPeakPerRps: 0.09,              // Пиковое потребление CPU (core) на 1 RPS/pod
+        memPeakPerRpsMiB: 40.0,           // Пиковое потребление памяти (MiB) на 1 RPS/pod
+        ocspOverheadPct: 14.0,            // Надбавка OCSP, %
+        baselineNodeCpuP95: 5.1           // Базовая нагрузка на ноду CPU
+    },
+    
+    // Коэффициенты для MAB
+    'MAB': {
+        nominalRpsPerPod: 27.0,           // Комфортный RPS на один pod
+        cpuPeakPerRps: 0.08871,           // Пиковое потребление CPU (core) на 1 RPS/pod
+        memPeakPerRpsMiB: 32.44,          // Пиковое потребление памяти (MiB) на 1 RPS/pod
+        baselineNodeCpuP95: 4.0           // Базовая нагрузка на ноду CPU
+    },
+    
+    // Коэффициенты для PEAP
+    'PEAP': {
+        nominalRpsPerPod: 12.0,           // Комфортный RPS на один pod
+        cpuPeakPerRps: 0.21,              // Пиковое потребление CPU (core) на 1 RPS/pod
+        memPeakPerRpsMiB: 70.0,           // Пиковое потребление памяти (MiB) на 1 RPS/pod
+        baselineNodeCpuP95: 4.0           // Базовая нагрузка на ноду CPU
+    },
+    
+    // Общие коэффициенты
+    common: {
+        safetyFactor: 1.25,               // Запас между peak и limit по ресурсам pod
+        maxNodeUtilization: 0.7,          // Максимальная целевая загрузка ноды (70%)
+        nodeHeadroom: 1.15,               // Запас на ноде
+        baselineNodeMemGiBP95: 10.0,      // Базовая нагрузка на ноду память (GiB)
+        requestRatio: 0.6                 // Соотношение request/limit
+    }
+};
+
+// Профили конфигурации в зависимости от количества устройств
+const PROFILES = {
+    'EAP-TLS': [
+        { maxDevices: 5000, name: 'A: до 5k устройств', minPods: 3, nodeCpu: 8, nodeMemory: 24 },
+        { maxDevices: 10000, name: 'B: 5k–10k', minPods: 6, nodeCpu: 12, nodeMemory: 32 },
+        { maxDevices: 12000, name: 'C: 10k–12k', minPods: 6, nodeCpu: 16, nodeMemory: 48 },
+        { maxDevices: 15000, name: 'D: 12k–15k', minPods: 6, nodeCpu: 16, nodeMemory: 64 },
+        { maxDevices: 20000, name: 'E: 15k–20k', minPods: 6, nodeCpu: 24, nodeMemory: 48 },
+    ],
+    
+    'MAB': [
+        { maxDevices: 5000, name: 'A: до 5k устройств', minPods: 2, nodeCpu: 8, nodeMemory: 24 },
+        { maxDevices: 10000, name: 'B: 5k–10k', minPods: 3, nodeCpu: 8, nodeMemory: 32 },
+        { maxDevices: 12000, name: 'C: 10k–12k', minPods: 4, nodeCpu: 12, nodeMemory: 48 },
+        { maxDevices: 15000, name: 'D: 12k–15k', minPods: 4, nodeCpu: 16, nodeMemory: 64 },
+        { maxDevices: 20000, name: 'E: 15k–20k', minPods: 6, nodeCpu: 16, nodeMemory: 48 },
+    ],
+    
+    'PEAP': [
+        { maxDevices: 5000, name: 'A: до 5k устройств', minPods: 4, nodeCpu: 8, nodeMemory: 24 },
+        { maxDevices: 10000, name: 'B: 5k–10k', minPods: 4, nodeCpu: 12, nodeMemory: 32 },
+        { maxDevices: 12000, name: 'C: 10k–12k', minPods: 6, nodeCpu: 16, nodeMemory: 48 },
+        { maxDevices: 15000, name: 'D: 12k–15k', minPods: 6, nodeCpu: 16, nodeMemory: 64 },
+        { maxDevices: 20000, name: 'E: 15k–20k', minPods: 8, nodeCpu: 24, nodeMemory: 48 },
+    ]
+};
+
+// Стандартные значения CPU для нод (округление вверх)
+const CPU_SIZES = [4, 8, 12, 16, 24, 32, 48, 64];
+
+// Стандартные значения памяти для нод (округление вверх)
+const MEMORY_SIZES = [8, 16, 24, 32, 48, 64, 96, 128];
+
+// Функция для получения профиля по количеству устройств
+function getProfile(authMethod, deviceCount) {
+    const profiles = PROFILES[authMethod];
+    if (!profiles) return null;
+    
+    for (const profile of profiles) {
+        if (deviceCount <= profile.maxDevices) {
+            return profile;
+        }
+    }
+    
+    // Если больше максимального - возвращаем последний профиль
+    return profiles[profiles.length - 1];
+}
+
+// Функция для округления CPU до стандартного размера
+function roundUpToCpuSize(value) {
+    for (const size of CPU_SIZES) {
+        if (value <= size) return size;
+    }
+    return CPU_SIZES[CPU_SIZES.length - 1];
+}
+
+// Функция для округления памяти до стандартного размера
+function roundUpToMemorySize(value) {
+    for (const size of MEMORY_SIZES) {
+        if (value <= size) return size;
+    }
+    return MEMORY_SIZES[MEMORY_SIZES.length - 1];
+}
