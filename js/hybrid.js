@@ -428,8 +428,20 @@ function exportToPDF() {
     };
 
     // Генерация и скачивание PDF
-    const timestamp = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
-    const filename = `Требования_Efros_NAC_${deviceCount}_устройств_${timestamp}.pdf`;
+    const scenarioName = inputs.authMethod; // EAP-TLS, MAB, или PEAP
+    const nodeCount = inputs.nodeCount;
+    
+    // Правильное склонение для "нода/ноды/нод"
+    let nodeWord;
+    if (nodeCount === 1) {
+        nodeWord = 'нода';
+    } else if (nodeCount >= 2 && nodeCount <= 4) {
+        nodeWord = 'ноды';
+    } else {
+        nodeWord = 'нод';
+    }
+    
+    const filename = `Требования_Efros_NAC_${scenarioName}_${deviceCount}_устройств_${nodeCount}_${nodeWord}.pdf`;
     
     pdfMake.createPdf(docDefinition).download(filename);
 }
