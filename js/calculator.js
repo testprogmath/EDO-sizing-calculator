@@ -113,10 +113,9 @@ function performCalculations(inputs) {
     const podCpuLimitMCpu = Math.ceil(podCpuLimitCores * 1000 / 10) * 10; // Округляем до 10 mCPU
     
     // 9. Расчет лимитов памяти для пода
-    const podMemLimitMiB = Math.max(
-        1024,
-        Math.ceil(rpsPerPod * coeffs.memPeakPerRpsMiB * commonCoeffs.safetyFactor / 64) * 64
-    );
+    // Формула: =MAX(1024,CEILING(rpsPerPod*memPeakPerRpsMiB*safetyFactor,64))
+    const calculatedMemLimit = Math.ceil(rpsPerPod * coeffs.memPeakPerRpsMiB * commonCoeffs.safetyFactor / 64) * 64;
+    const podMemLimitMiB = Math.max(1024, calculatedMemLimit);
     
     // 10. Расчет requests (60% от limits)
     const podCpuRequestMCpu = Math.ceil(podCpuLimitMCpu * commonCoeffs.requestRatio / 10) * 10;
@@ -272,22 +271,31 @@ function copyToClipboard() {
     
     let text = 'Результаты расчета калькулятора NAC\n';
     text += '=====================================\n\n';
-    text += 'Профиль: ' + results.profileName + '\n\n';
-    text += 'БИЗНЕС-ПОКАЗАТЕЛИ:\n';
-    text += '• Минимальное количество подов: ' + results.minPods + '\n';
-    text += '• Рекомендуемое количество подов: ' + results.recommendedPods + '\n';
+    text += 'Конфигурация: ' + results.inputs.devices + ' устройств, ' + results.inputs.authMethod;
+    if (results.inputs.authMethod === 'EAP-TLS' && results.inputs.ocsp) {
+        text += ' с OCSP';
+    }
+    text += '\n\n';
+    
+    text += 'БИЗНЕС-ПОКАЗАТЕЛИ:\n\n';
+    text += 'Требования к аппаратному обеспечению:\n';
+    text += '• Количество серверов: ' + results.inputs.nodeCount + ' шт\n';
+    text += '• NAC комплекс + СУБД\n\n';
+    
+    text += 'Параметры серверов:\n';
+    text += '                    Сервер NAC комплекса    Сервер СУБД\n';
+    text += 'Процессор:          от ' + results.nodeCpu + ' vCPU, 2.0+ ГГц    от ' + results.dbRequirements.cpu + ' vCPU, 2.0+ ГГц\n';
+    text += 'Оперативная память: от ' + results.nodeMemory + ' ГБ               от ' + results.dbRequirements.memory + ' ГБ\n';
+    text += 'Жесткий диск:       от ' + results.nodeStorage + ' ГБ              от ' + results.dbRequirements.storage + ' ГБ\n';
+    text += 'Сетевая карта:      от 10 Гбит/с            от ' + results.dbRequirements.network + '\n\n';
+    
+    text += 'ТЕХНИЧЕСКИЕ ПОКАЗАТЕЛИ:\n';
+    text += '• Количество нод Kubernetes: ' + results.inputs.nodeCount + ' шт\n';
     text += '• CPU на ноду: ' + results.nodeCpu + ' vCPU\n';
     text += '• Память на ноду: ' + results.nodeMemory + ' GiB\n';
-    text += '• Хранилище на ноду: ' + results.nodeStorage + ' GB\n';
-    text += '• Общий CPU на кластер: ' + results.totalCpu + ' vCPU\n';
-    text += '• Общая память на кластер: ' + results.totalMemory + ' GiB\n\n';
-    text += 'ТЕХНИЧЕСКИЕ ПОКАЗАТЕЛИ:\n';
-    text += '• Целевой RPS: ' + results.targetRps + ' запросов/сек\n';
-    text += '• RPS на под: ' + results.rpsPerPod + '\n';
+    text += '• Количество подов: ' + results.recommendedPods + '\n';
     text += '• CPU лимит на под: ' + results.podCpuLimit + ' mCPU\n';
-    text += '• CPU request на под: ' + results.podCpuRequest + ' mCPU\n';
     text += '• Память лимит на под: ' + results.podMemLimit + ' MiB\n';
-    text += '• Память request на под: ' + results.podMemRequest + ' MiB\n';
     
     navigator.clipboard.writeText(text).then(() => {
         alert('Результаты скопированы в буфер обмена');
