@@ -212,7 +212,7 @@ function exportToPDF() {
     alert('Для экспорта в PDF требуется подключение библиотеки jsPDF.\nПока что используйте экспорт в Excel или копирование результатов.');
 }
 
-function exportToExcel() {
+function exportToCSV() {
     if (!window.lastCalculationResults) {
         alert('Сначала выполните расчет');
         return;

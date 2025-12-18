@@ -331,8 +331,8 @@
                         <button class="export-btn" onclick="exportToPDF()" style="width: 100%; margin-bottom: 10px;">
                             <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #666;"><use href="#icon-document"/></svg> Экспорт в PDF (Efros DO)
                         </button>
-                        <button class="export-btn" onclick="exportToExcel()" style="width: 100%; margin-bottom: 10px;">
-                            <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #666;"><use href="#icon-download"/></svg> Экспорт в Excel
+                        <button class="export-btn" onclick="exportToCSV()" style="width: 100%; margin-bottom: 10px;">
+                            <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #666;"><use href="#icon-download"/></svg> Экспорт в CSV
                         </button>
                         <button class="export-btn" onclick="copyToClipboard()" style="width: 100%;">
                             <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #666;"><use href="#icon-copy"/></svg> Копировать результаты
@@ -406,5 +406,12 @@
             </div>
         </div>
     </footer>
+    
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+    <script src="js/coefficients.js"></script>
+    <script src="js/calculator.js"></script>
+    <script src="js/hybrid.js"></script>
 </body>
 </html>
