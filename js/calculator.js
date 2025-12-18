@@ -208,9 +208,6 @@ function updateDatabaseRequirements(dbReq) {
     }
 }
 
-function exportToPDF() {
-    alert('Для экспорта в PDF требуется подключение библиотеки jsPDF.\nПока что используйте экспорт в Excel или копирование результатов.');
-}
 
 function exportToCSV() {
     if (!window.lastCalculationResults) {
@@ -238,6 +235,15 @@ function exportToCSV() {
     csv += 'CPU request на под (mCPU),' + results.podCpuRequest + '\n';
     csv += 'Память лимит на под (MiB),' + results.podMemLimit + '\n';
     csv += 'Память request на под (MiB),' + results.podMemRequest + '\n';
+    
+    // Добавляем информацию о БД если есть
+    if (results.dbRequirements) {
+        csv += '\nТребования к БД\n';
+        csv += 'CPU БД (vCPU),' + results.dbRequirements.cpu + '\n';
+        csv += 'Память БД (ГБ),' + results.dbRequirements.memory + '\n';
+        csv += 'Хранилище БД (ГБ),' + results.dbRequirements.storage + '\n';
+        csv += 'Kubernetes ноды БД,Внешний сервис\n';
+    }
     
     // Создаем blob и скачиваем
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });

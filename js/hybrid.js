@@ -343,7 +343,7 @@ function exportToPDF() {
                         ['Дисковое пространство', `${results.nodeStorage * inputs.nodeCount} ГБ SSD`, `${results.dbRequirements.storage} ГБ SSD`],
                         ['Сетевой интерфейс', '1 Гбит/с', '1 Гбит/с'],
                         ['Операционная система', 'Linux (Astra/РЕД ОС)', 'Linux (Astra/РЕД ОС)'],
-                        ['Kubernetes ноды', `${inputs.nodeCount} шт`, 'Не требуется']
+                        ['Kubernetes ноды', `${inputs.nodeCount} шт`, 'Внешний сервис']
                     ]
                 },
                 layout: 'lightHorizontalLines',
@@ -359,7 +359,6 @@ function exportToPDF() {
             {
                 ul: [
                     'Расчет выполнен для стандартной нагрузки',
-                    'Для нагрузок >20000 устройств рекомендуется индивидуальный расчет',
                     'Встроенная PostgreSQL подходит для пилотной эксплуатации', 
                     'Для продуктивной среды рекомендуется внешняя СУБД',
                     'Все серверы должны иметь резервирование питания и сети'
