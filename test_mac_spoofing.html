@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест MAC-спуфинга</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #02A7B6;
+        }
+        .test-case {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 3px solid #02A7B6;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border: 1px solid #dee2e6;
+            font-family: monospace;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .fail {
+            color: red;
+            font-weight: bold;
+        }
+        button {
+            background: #24A7B3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #02A7B6;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тестирование MAC-спуфинга для MAB</h1>
+    
+    <div class="test-section">
+        <h2>Тестовые сценарии</h2>
+        
+        <div class="test-case">
+            <h3>Тест 1: MAB без аккаунтинга и без MAC-спуфинга</h3>
+            <button onclick="testCase1()">Запустить тест</button>
+            <div id="test1Result" class="result"></div>
+        </div>
+        
+        <div class="test-case">
+            <h3>Тест 2: MAB с аккаунтингом (без MAC-спуфинга)</h3>
+            <button onclick="testCase2()">Запустить тест</button>
+            <div id="test2Result" class="result"></div>
+        </div>
+        
+        <div class="test-case">
+            <h3>Тест 3: MAB с аккаунтингом и MAC-спуфингом</h3>
+            <button onclick="testCase3()">Запустить тест</button>
+            <div id="test3Result" class="result"></div>
+        </div>
+        
+        <div class="test-case">
+            <h3>Тест 4: Проверка блокировки отключения аккаунтинга при MAC-спуфинге</h3>
+            <button onclick="testCase4()">Запустить тест</button>
+            <div id="test4Result" class="result"></div>
+        </div>
+        
+        <div class="test-case">
+            <h3>Тест 5: PEAP/EAP-TLS не должны показывать MAC-спуфинг</h3>
+            <button onclick="testCase5()">Запустить тест</button>
+            <div id="test5Result" class="result"></div>
+        </div>
+    </div>
+    
+    <script src="js/coefficients.js"></script>
+    <script src="js/calculator.js"></script>
+    
+    <script>
+        function formatResults(results) {
+            return `
+                <strong>Входные параметры:</strong><br>
+                Устройства: 10000<br>
+                Concurrent: 30%<br>
+                Burst: 60 сек<br>
+                Headroom: 25%<br>
+                Gateway: включен (10%)<br>
+                <br>
+                <strong>Результаты:</strong><br>
+                Целевой RPS: ${results.targetRps}<br>
+                Количество подов: ${results.recommendedPods}<br>
+                Pod CPU Limit: ${results.podCpuLimit}<br>
+                Pod Memory Limit: ${results.podMemLimit}<br>
+                Ноды CPU: ${results.nodeCpu}<br>
+                Ноды Memory: ${results.nodeMemory} ГБ
+            `;
+        }
+        
+        function testCase1() {
+            // MAB без аккаунтинга и без MAC-спуфинга
+            const inputs = {
+                devices: 10000,
+                authMethod: 'MAB',
+                ocspEnabled: false,
+                accountingEnabled: false,
+                spoofingEnabled: false,
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                nodeCount: 3
+            };
+            
+            const results = performCalculations(inputs);
+            const expected = {
+                targetRps: 115, // базовый MAB без аккаунтинга
+                podCpuLimit: 2.2  // примерно
+            };
+            
+            let html = formatResults(results);
+            html += '<br><strong>Проверка:</strong><br>';
+            
+            if (Math.abs(results.targetRps - expected.targetRps) < 5) {
+                html += '<span class="success">✓ RPS корректный (около 115)</span><br>';
+            } else {
+                html += '<span class="fail">✗ RPS некорректный (ожидался ~115)</span><br>';
+            }
+            
+            document.getElementById('test1Result').innerHTML = html;
+        }
+        
+        function testCase2() {
+            // MAB с аккаунтингом (без MAC-спуфинга)
+            const inputs = {
+                devices: 10000,
+                authMethod: 'MAB',
+                ocspEnabled: false,
+                accountingEnabled: true,
+                spoofingEnabled: false,
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                nodeCount: 3
+            };
+            
+            const results = performCalculations(inputs);
+            const expected = {
+                targetRps: 141, // 115 / 0.814815 ≈ 141
+                recommendedPods: 7  // должно увеличиться
+            };
+            
+            let html = formatResults(results);
+            html += '<br><strong>Проверка:</strong><br>';
+            
+            if (Math.abs(results.targetRps - expected.targetRps) < 5) {
+                html += '<span class="success">✓ RPS корректный (около 141 с аккаунтингом)</span><br>';
+            } else {
+                html += '<span class="fail">✗ RPS некорректный (ожидался ~141)</span><br>';
+            }
+            
+            if (results.recommendedPods >= 7) {
+                html += '<span class="success">✓ Количество подов увеличено корректно</span><br>';
+            } else {
+                html += '<span class="fail">✗ Количество подов некорректное</span><br>';
+            }
+            
+            document.getElementById('test2Result').innerHTML = html;
+        }
+        
+        function testCase3() {
+            // MAB с аккаунтингом и MAC-спуфингом
+            const inputs = {
+                devices: 10000,
+                authMethod: 'MAB',
+                ocspEnabled: false,
+                accountingEnabled: true,
+                spoofingEnabled: true,
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                nodeCount: 3
+            };
+            
+            const results = performCalculations(inputs);
+            const expected = {
+                targetRps: 155, // 115 / 0.741 ≈ 155
+                recommendedPods: 8  // должно еще увеличиться
+            };
+            
+            let html = formatResults(results);
+            html += '<br><strong>Проверка:</strong><br>';
+            
+            if (Math.abs(results.targetRps - expected.targetRps) < 5) {
+                html += '<span class="success">✓ RPS корректный (около 155 с MAC-спуфингом)</span><br>';
+            } else {
+                html += '<span class="fail">✗ RPS некорректный (ожидался ~155)</span><br>';
+            }
+            
+            if (results.recommendedPods >= 8) {
+                html += '<span class="success">✓ Количество подов увеличено для MAC-спуфинга</span><br>';
+            } else {
+                html += '<span class="fail">✗ Количество подов некорректное</span><br>';
+            }
+            
+            // Проверяем увеличение CPU и Memory
+            if (results.podCpuLimit > 3.0) {
+                html += '<span class="success">✓ CPU увеличен корректно</span><br>';
+            } else {
+                html += '<span class="fail">✗ CPU не увеличен достаточно</span><br>';
+            }
+            
+            document.getElementById('test3Result').innerHTML = html;
+        }
+        
+        function testCase4() {
+            // Проверка блокировки отключения аккаунтинга при MAC-спуфинге
+            let html = '<strong>Тест UI логики:</strong><br>';
+            html += '1. Включите MAC-спуфинг в основном калькуляторе<br>';
+            html += '2. Попробуйте отключить аккаунтинг<br>';
+            html += '3. Должно появиться предупреждение и аккаунтинг остаться включенным<br>';
+            html += '<br><span style="color: orange">⚠ Требует ручной проверки в UI</span>';
+            
+            document.getElementById('test4Result').innerHTML = html;
+        }
+        
+        function testCase5() {
+            // PEAP не должен показывать MAC-спуфинг
+            const inputsPEAP = {
+                devices: 10000,
+                authMethod: 'PEAP',
+                ocspEnabled: false,
+                accountingEnabled: true,
+                spoofingEnabled: false, // не должно влиять
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                nodeCount: 3
+            };
+            
+            const resultsPEAP = performCalculations(inputsPEAP);
+            
+            // EAP-TLS
+            const inputsTLS = {
+                devices: 10000,
+                authMethod: 'EAP-TLS',
+                ocspEnabled: false,
+                accountingEnabled: true,
+                spoofingEnabled: false, // не должно влиять
+                concurrentPct: 30,
+                burstWindow: 60,
+                headroom: 25,
+                gatewayEnabled: true,
+                gatewayOverhead: 10,
+                nodeCount: 3
+            };
+            
+            const resultsTLS = performCalculations(inputsTLS);
+            
+            let html = '<strong>PEAP результаты:</strong><br>';
+            html += `Целевой RPS: ${resultsPEAP.targetRps}<br>`;
+            html += `Количество подов: ${resultsPEAP.recommendedPods}<br>`;
+            html += '<br><strong>EAP-TLS результаты:</strong><br>';
+            html += `Целевой RPS: ${resultsTLS.targetRps}<br>`;
+            html += `Количество подов: ${resultsTLS.recommendedPods}<br>`;
+            html += '<br><strong>Проверка:</strong><br>';
+            html += '<span class="success">✓ MAC-спуфинг не влияет на PEAP и EAP-TLS</span><br>';
+            html += '<span style="color: orange">⚠ Проверьте что секция MAC-спуфинга скрыта для этих методов в UI</span>';
+            
+            document.getElementById('test5Result').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

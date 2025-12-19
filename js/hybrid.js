@@ -10,6 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
         accountingCheckbox.checked = true; // MAB - включен по умолчанию
     }
     
+    // Показываем секцию MAC-спуфинга для MAB (который выбран по умолчанию)
+    const spoofingSection = document.getElementById('spoofingSection');
+    console.log('Initial method:', hybridSelectedMethod);
+    console.log('Spoofing section found:', spoofingSection);
+    if (spoofingSection && hybridSelectedMethod === 'MAB') {
+        console.log('Showing MAC-spoofing section for MAB');
+        spoofingSection.style.display = 'block';
+    }
+    
     // Инициализируем превью и выполняем начальный расчет
     updatePreview();
     performHybridCalculation(); // Начальный расчет с MAB
@@ -39,10 +48,16 @@ function setupScenarioCards() {
             
             // Устанавливаем значения по умолчанию для Accounting
             const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
+            const spoofingSection = document.getElementById('spoofingSection');
+            const spoofingCheckbox = document.getElementById('hybridSpoofingEnabled');
+            
             if (hybridSelectedMethod === 'MAB') {
                 accountingCheckbox.checked = true; // для MAB включен по умолчанию
+                spoofingSection.style.display = 'block'; // показываем секцию MAC-спуфинга
             } else {
                 accountingCheckbox.checked = false; // для PEAP и EAP-TLS выключен по умолчанию
+                spoofingSection.style.display = 'none'; // скрываем секцию MAC-спуфинга
+                spoofingCheckbox.checked = false; // сбрасываем чекбокс
             }
             
             // Обновляем превью и пересчитываем
@@ -54,7 +69,7 @@ function setupScenarioCards() {
 
 function setupInputListeners() {
     const inputs = document.querySelectorAll('#hybridDevices, #hybridConcurrent, #hybridBurstWindow, #hybridHeadroom, #hybridGatewayOverhead, #hybridNodeCount');
-    const checkboxes = document.querySelectorAll('#hybridOcspEnabled, #hybridGatewayEnabled, #hybridAccountingEnabled');
+    const checkboxes = document.querySelectorAll('#hybridOcspEnabled, #hybridGatewayEnabled, #hybridAccountingEnabled, #hybridSpoofingEnabled');
     
     // Специальный обработчик для поля устройств
     const devicesInput = document.getElementById('hybridDevices');
@@ -80,6 +95,28 @@ function setupInputListeners() {
     
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
+            // Специальная логика для MAC-спуфинга
+            if (this.id === 'hybridSpoofingEnabled' && this.checked) {
+                // Если включаем MAC-спуфинг, автоматически включаем аккаунтинг
+                document.getElementById('hybridAccountingEnabled').checked = true;
+                document.getElementById('hybridAccountingEnabled').disabled = true; // блокируем отключение
+            } else if (this.id === 'hybridSpoofingEnabled' && !this.checked) {
+                // Если выключаем MAC-спуфинг, разблокируем аккаунтинг
+                document.getElementById('hybridAccountingEnabled').disabled = false;
+            }
+            
+            // Специальная логика для аккаунтинга
+            if (this.id === 'hybridAccountingEnabled' && !this.checked) {
+                // Если пытаемся выключить аккаунтинг, проверяем MAC-спуфинг
+                const spoofingEnabled = document.getElementById('hybridSpoofingEnabled').checked;
+                if (spoofingEnabled) {
+                    // Блокируем отключение аккаунтинга если включен MAC-спуфинг
+                    this.checked = true;
+                    alert('Нельзя отключить аккаунтинг при включенной защите от MAC-спуфинга');
+                    return;
+                }
+            }
+            
             updatePreview();
             performHybridCalculation(); // Автоматический пересчет
         });
@@ -232,6 +269,7 @@ function getHybridInputValues() {
         authMethod: hybridSelectedMethod,
         ocspEnabled: document.getElementById('hybridOcspEnabled').checked,
         accountingEnabled: document.getElementById('hybridAccountingEnabled').checked,
+        spoofingEnabled: document.getElementById('hybridSpoofingEnabled').checked,
         concurrentPct: parseFloat(document.getElementById('hybridConcurrent').value),
         burstWindow: parseInt(document.getElementById('hybridBurstWindow').value),
         headroom: parseFloat(document.getElementById('hybridHeadroom').value),

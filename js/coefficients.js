@@ -28,7 +28,11 @@ const COEFFICIENTS = {
         requestRatio: 0.6,                // Соотношение request/limit
         accountingRpsReduction: 0.814815, // RPS уменьшается до 81.48% от исходного (22/27 ≈ 0.814815)
         accountingCpuOverhead: 1.23,      // CPU увеличивается на 23%
-        accountingMemOverhead: 1.23       // RAM увеличивается на 23%
+        accountingMemOverhead: 1.23,      // RAM увеличивается на 23%
+        // MAC-спуфинг (дополнительный overhead поверх accounting)
+        spoofingRpsReduction: 0.741,      // RPS уменьшается до 74.1% от исходного (20/27 ≈ 0.741)
+        spoofingCpuOverhead: 1.273,       // CPU увеличивается еще на 27.3% (поверх accounting)
+        spoofingMemOverhead: 1.25         // RAM увеличивается еще на 25% (поверх accounting)
     }
 };
 

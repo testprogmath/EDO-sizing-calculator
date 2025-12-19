@@ -90,7 +90,16 @@ function performCalculations(inputs) {
         targetRps = targetRps / commonCoeffs.accountingRpsReduction;
     }
     
-    // 7. Расчет количества подов (без дополнительного влияния Accounting на производительность)
+    // 7. RPS с учетом MAC-спуфинга (только для MAB, дополнительно увеличиваем targetRps)
+    if (inputs.spoofingEnabled && inputs.authMethod === 'MAB') {
+        // MAC-спуфинг работает только с аккаунтингом
+        // Если включен MAC-спуфинг, используем spoofingRpsReduction вместо accountingRpsReduction
+        // Пересчитываем targetRps от базового значения
+        const baseTargetRps = rpsWithHeadroom;
+        targetRps = baseTargetRps / commonCoeffs.spoofingRpsReduction;
+    }
+    
+    // 8. Расчет количества подов (без дополнительного влияния на производительность)
     const effectiveNominalRpsPerPod = coeffs.nominalRpsPerPod;
     const calculatedPods = Math.ceil(targetRps / effectiveNominalRpsPerPod);
     const profile = getProfile(inputs.authMethod, inputs.devices);
@@ -102,18 +111,26 @@ function performCalculations(inputs) {
     // 7. Фактический RPS на под
     const rpsPerPod = targetRps / finalPods;
     
-    // 8. Расчет лимитов CPU для пода (с учетом Accounting)
+    // 9. Расчет лимитов CPU для пода (с учетом Accounting и MAC-спуфинга)
     let baseCpuPeakPerRps = coeffs.cpuPeakPerRps;
     if (inputs.accountingEnabled) {
         baseCpuPeakPerRps = coeffs.cpuPeakPerRps * commonCoeffs.accountingCpuOverhead;
     }
+    if (inputs.spoofingEnabled && inputs.authMethod === 'MAB') {
+        // MAC-спуфинг добавляет дополнительный overhead поверх accounting
+        baseCpuPeakPerRps = baseCpuPeakPerRps * commonCoeffs.spoofingCpuOverhead;
+    }
     const podCpuLimitCores = rpsPerPod * baseCpuPeakPerRps * commonCoeffs.safetyFactor;
     const podCpuLimitMCpu = Math.ceil(podCpuLimitCores * 1000 / 10) * 10; // Округляем до 10 mCPU
     
-    // 9. Расчет лимитов памяти для пода (с учетом Accounting)
+    // 10. Расчет лимитов памяти для пода (с учетом Accounting и MAC-спуфинга)
     let baseMemPeakPerRpsMiB = coeffs.memPeakPerRpsMiB;
     if (inputs.accountingEnabled) {
         baseMemPeakPerRpsMiB = coeffs.memPeakPerRpsMiB * commonCoeffs.accountingMemOverhead;
+    }
+    if (inputs.spoofingEnabled && inputs.authMethod === 'MAB') {
+        // MAC-спуфинг добавляет дополнительный overhead поверх accounting
+        baseMemPeakPerRpsMiB = baseMemPeakPerRpsMiB * commonCoeffs.spoofingMemOverhead;
     }
     // Формула: =MAX(1024,CEILING(rpsPerPod*memPeakPerRpsMiB*safetyFactor,64))
     const calculatedMemLimit = Math.ceil(rpsPerPod * baseMemPeakPerRpsMiB * commonCoeffs.safetyFactor / 64) * 64;

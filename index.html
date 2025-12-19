@@ -258,6 +258,26 @@
                         </div>
                     </div>
                     
+                    <!-- MAC-спуфинг секция (только для MAB) -->
+                    <div class="accounting-section" id="spoofingSection" style="display: none; background: #fff3e0; border-color: #ffcc80;">
+                        <div class="accounting-header" style="color: #e65100;">
+                            <span class="icon"><svg width="16" height="16" style="vertical-align: middle; color: #e65100;"><use href="#icon-shield"/></svg></span>
+                            <span class="title">Защита от MAC-спуфинга</span>
+                        </div>
+                        <div class="accounting-description">
+                            Защита от подмены MAC-адресов повышает безопасность, но увеличивает нагрузку на систему. 
+                            Доступно только для MAB с включенным аккаунтингом.
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <input type="checkbox" id="hybridSpoofingEnabled">
+                            <span>Включить защиту от MAC-спуфинга</span>
+                        </label>
+                        <div class="accounting-impact">
+                            <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #ff9800;"><use href="#icon-warning"/></svg> 
+                            MAC-спуфинг проверка добавляет дополнительную нагрузку: CPU +27%, Memory +25%
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="hybridDevices">
                             Количество устройств (шт)
