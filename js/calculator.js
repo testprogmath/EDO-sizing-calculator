@@ -90,13 +90,11 @@ function performCalculations(inputs) {
         targetRps = targetRps / commonCoeffs.accountingRpsReduction;
     }
     
-    // 7. RPS с учетом MAC-спуфинга (только для MAB, дополнительно увеличиваем targetRps)
+    // 7. RPS с учетом MAC-спуфинга (только для MAB, дополнительно к аккаунтингу)
     if (inputs.spoofingEnabled && inputs.authMethod === 'MAB') {
-        // MAC-спуфинг работает только с аккаунтингом
-        // Если включен MAC-спуфинг, используем spoofingRpsReduction вместо accountingRpsReduction
-        // Пересчитываем targetRps от базового значения
-        const baseTargetRps = rpsWithHeadroom;
-        targetRps = baseTargetRps / commonCoeffs.spoofingRpsReduction;
+        // MAC-спуфинг работает поверх аккаунтинга
+        // Применяем дополнительное уменьшение производительности
+        targetRps = targetRps * (commonCoeffs.accountingRpsReduction / commonCoeffs.spoofingRpsReduction);
     }
     
     // 8. Расчет количества подов (без дополнительного влияния на производительность)

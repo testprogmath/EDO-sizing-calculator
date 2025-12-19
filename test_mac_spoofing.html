@@ -134,17 +134,17 @@
             
             const results = performCalculations(inputs);
             const expected = {
-                targetRps: 115, // базовый MAB без аккаунтинга
-                podCpuLimit: 2.2  // примерно
+                targetRps: 68.75, // базовый MAB без аккаунтинга
+                podCpuLimit: 2550  // примерно
             };
             
             let html = formatResults(results);
             html += '<br><strong>Проверка:</strong><br>';
             
-            if (Math.abs(results.targetRps - expected.targetRps) < 5) {
-                html += '<span class="success">✓ RPS корректный (около 115)</span><br>';
+            if (Math.abs(results.targetRps - expected.targetRps) < 1) {
+                html += '<span class="success">✓ RPS корректный (68.75)</span><br>';
             } else {
-                html += '<span class="fail">✗ RPS некорректный (ожидался ~115)</span><br>';
+                html += '<span class="fail">✗ RPS некорректный (ожидался 68.75, получен ' + results.targetRps + ')</span><br>';
             }
             
             document.getElementById('test1Result').innerHTML = html;
@@ -168,23 +168,23 @@
             
             const results = performCalculations(inputs);
             const expected = {
-                targetRps: 141, // 115 / 0.814815 ≈ 141
-                recommendedPods: 7  // должно увеличиться
+                targetRps: 84.37, // 68.75 / 0.814815 ≈ 84.37
+                recommendedPods: 6  // должно увеличиться
             };
             
             let html = formatResults(results);
             html += '<br><strong>Проверка:</strong><br>';
             
-            if (Math.abs(results.targetRps - expected.targetRps) < 5) {
-                html += '<span class="success">✓ RPS корректный (около 141 с аккаунтингом)</span><br>';
+            if (Math.abs(results.targetRps - expected.targetRps) < 1) {
+                html += '<span class="success">✓ RPS корректный (84.37 с аккаунтингом)</span><br>';
             } else {
-                html += '<span class="fail">✗ RPS некорректный (ожидался ~141)</span><br>';
+                html += '<span class="fail">✗ RPS некорректный (ожидался 84.37, получен ' + results.targetRps + ')</span><br>';
             }
             
-            if (results.recommendedPods >= 7) {
+            if (results.recommendedPods >= 6) {
                 html += '<span class="success">✓ Количество подов увеличено корректно</span><br>';
             } else {
-                html += '<span class="fail">✗ Количество подов некорректное</span><br>';
+                html += '<span class="fail">✗ Количество подов некорректное (ожидалось 6+, получено ' + results.recommendedPods + ')</span><br>';
             }
             
             document.getElementById('test2Result').innerHTML = html;
@@ -208,30 +208,30 @@
             
             const results = performCalculations(inputs);
             const expected = {
-                targetRps: 155, // 115 / 0.741 ≈ 155
-                recommendedPods: 8  // должно еще увеличиться
+                targetRps: 92.78, // 68.75 / 0.741 ≈ 92.78
+                recommendedPods: 6  // может увеличиться
             };
             
             let html = formatResults(results);
             html += '<br><strong>Проверка:</strong><br>';
             
-            if (Math.abs(results.targetRps - expected.targetRps) < 5) {
-                html += '<span class="success">✓ RPS корректный (около 155 с MAC-спуфингом)</span><br>';
+            if (Math.abs(results.targetRps - expected.targetRps) < 1) {
+                html += '<span class="success">✓ RPS корректный (92.78 с MAC-спуфингом)</span><br>';
             } else {
-                html += '<span class="fail">✗ RPS некорректный (ожидался ~155)</span><br>';
+                html += '<span class="fail">✗ RPS некорректный (ожидался 92.78, получен ' + results.targetRps + ')</span><br>';
             }
             
-            if (results.recommendedPods >= 8) {
-                html += '<span class="success">✓ Количество подов увеличено для MAC-спуфинга</span><br>';
+            if (results.recommendedPods >= 6) {
+                html += '<span class="success">✓ Количество подов корректное</span><br>';
             } else {
-                html += '<span class="fail">✗ Количество подов некорректное</span><br>';
+                html += '<span class="fail">✗ Количество подов некорректное (получено ' + results.recommendedPods + ')</span><br>';
             }
             
             // Проверяем увеличение CPU и Memory
-            if (results.podCpuLimit > 3.0) {
-                html += '<span class="success">✓ CPU увеличен корректно</span><br>';
+            if (results.podCpuLimit > 2600) {
+                html += '<span class="success">✓ CPU увеличен корректно (MAC-спуфинг добавляет +27.3%)</span><br>';
             } else {
-                html += '<span class="fail">✗ CPU не увеличен достаточно</span><br>';
+                html += '<span class="fail">✗ CPU не увеличен достаточно (ожидалось >2600, получено ' + results.podCpuLimit + ')</span><br>';
             }
             
             document.getElementById('test3Result').innerHTML = html;

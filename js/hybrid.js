@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setupScenarioCards();
     setupInputListeners();
     
+    // После setupScenarioCards() hybridSelectedMethod должен быть 'MAB'
+    
     // Устанавливаем начальные значения accounting для MAB (по умолчанию)
     const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
     if (accountingCheckbox) {
@@ -12,11 +14,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Показываем секцию MAC-спуфинга для MAB (который выбран по умолчанию)
     const spoofingSection = document.getElementById('spoofingSection');
-    console.log('Initial method:', hybridSelectedMethod);
-    console.log('Spoofing section found:', spoofingSection);
-    if (spoofingSection && hybridSelectedMethod === 'MAB') {
-        console.log('Showing MAC-spoofing section for MAB');
-        spoofingSection.style.display = 'block';
+    console.log('Initial method after setup:', hybridSelectedMethod);
+    console.log('Spoofing section element:', spoofingSection);
+    
+    if (spoofingSection) {
+        if (hybridSelectedMethod === 'MAB') {
+            console.log('Showing MAC-spoofing section for MAB');
+            spoofingSection.style.display = 'block';
+        } else {
+            console.log('Not MAB, hiding MAC-spoofing');
+            spoofingSection.style.display = 'none';
+        }
+    } else {
+        console.error('MAC-spoofing section not found!');
     }
     
     // Инициализируем превью и выполняем начальный расчет
