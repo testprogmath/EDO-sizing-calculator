@@ -78,7 +78,7 @@ function applyPreset(type) {
             concurrent: 25, 
             burst: 60, 
             headroom: 30, 
-            nodes: 2,
+            nodes: 3,
             method: 'MAB'
         },
         'medium': { 
@@ -94,7 +94,7 @@ function applyPreset(type) {
             concurrent: 35, 
             burst: 45, 
             headroom: 20, 
-            nodes: 4,
+            nodes: 5,
             method: 'EAP-TLS'
         }
     };
@@ -143,6 +143,19 @@ function toggleAdvanced() {
     }
 }
 
+function toggleNacDetails() {
+    const content = document.getElementById('nacDetailsContent');
+    const icon = document.getElementById('nacDetailsIcon');
+    
+    if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        icon.textContent = '▶';
+    } else {
+        content.classList.add('expanded');
+        icon.textContent = '▼';
+    }
+}
+
 function updatePreview() {
     // Функция оставлена для возможных будущих обновлений UI
 }
@@ -152,8 +165,8 @@ function showScalingWarning(devices) {
     const messageDiv = document.getElementById('scalingMessage');
     
     messageDiv.innerHTML = `
-        Для <strong>${devices.toLocaleString()}</strong> устройств автоматически установлено <strong>4 ноды</strong>.<br>
-        <strong>Рекомендация:</strong> Для данной конфигурации рекомендуется использовать <strong>4-5 нод</strong> для обеспечения оптимальной производительности и отказоустойчивости.
+        Для <strong>${devices.toLocaleString()}</strong> устройств автоматически установлено <strong>5 нод</strong>.<br>
+        <strong>Рекомендация:</strong> Для данной конфигурации рекомендуется использовать <strong>5-7 нод</strong> для обеспечения оптимальной производительности и отказоустойчивости.
     `;
     
     warningDiv.style.display = 'block';
@@ -179,13 +192,13 @@ function getHybridInputValues() {
     let nodeCount = parseInt(document.getElementById('hybridNodeCount').value);
     
     // Автоматическое масштабирование для больших нагрузок
-    if (devices > 20000 && nodeCount < 4) {
-        nodeCount = 4;
+    if (devices > 20000 && nodeCount < 5) {
+        nodeCount = 5;
         // Обновляем dropdown без вызова событий
         const nodeSelect = document.getElementById('hybridNodeCount');
         const currentValue = nodeSelect.value;
-        if (currentValue !== "4") {
-            nodeSelect.value = 4;
+        if (currentValue !== "5") {
+            nodeSelect.value = 5;
             // Показываем предупреждение только если реально изменили значение
             showScalingWarning(devices);
         }
@@ -246,6 +259,21 @@ function displayHybridResults(results) {
     document.getElementById('hybridTargetRps').textContent = results.targetRps;
     document.getElementById('hybridRpsPerPod').textContent = results.rpsPerPod;
     document.getElementById('hybridDbLoad').textContent = results.dbRequirements.dbLoad;
+    
+    // Обновляем детализацию модуля NAC
+    if (results.nacRadiusDetails) {
+        document.getElementById('rawNacMemory').textContent = results.nacRadiusDetails.rawNacMemoryGiB;
+        document.getElementById('nacMemoryPercent').textContent = results.nacRadiusDetails.nacMemoryPercent;
+        document.getElementById('baselineMemory').textContent = results.nacRadiusDetails.baselineMemoryGiB;
+        document.getElementById('baselineMemoryPercent').textContent = results.nacRadiusDetails.baselineMemoryPercent;
+        document.getElementById('totalCalculatedMemory').textContent = results.nacRadiusDetails.totalCalculatedMemory;
+        document.getElementById('finalRoundedMemory').textContent = results.nacRadiusDetails.finalRoundedMemory;
+        
+        document.getElementById('rawNacCpu').textContent = results.nacRadiusDetails.rawNacCpuCores;
+        document.getElementById('baselineCpu').textContent = results.nacRadiusDetails.baselineCpuCores;
+        document.getElementById('totalCalculatedCpu').textContent = results.nacRadiusDetails.totalCalculatedCpu;
+        document.getElementById('finalRoundedCpu').textContent = results.nacRadiusDetails.finalRoundedCpu;
+    }
     
     // Сохраняем для экспорта
     window.lastCalculationResults = results;
@@ -421,7 +449,7 @@ function exportToPDF() {
     let nodeWord;
     if (nodeCount === 1) {
         nodeWord = 'нода';
-    } else if (nodeCount >= 2 && nodeCount <= 4) {
+    } else if (nodeCount === 3) {
         nodeWord = 'ноды';
     } else {
         nodeWord = 'нод';

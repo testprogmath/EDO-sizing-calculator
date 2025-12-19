@@ -163,6 +163,25 @@ function performCalculations(inputs) {
             rawNodeCpu: rawNodeCpu.toFixed(2),
             rawCalculatedMemory: rawCalculatedMemory.toFixed(2),
             baselineMemGiB: baselineMemGiB.toFixed(2)
+        },
+        
+        // Детализация модуля NAC
+        nacRadiusDetails: {
+            // "Чистые" требования модуля NAC (без baseline и округления)
+            rawNacMemoryGiB: ((rpsPerPod * podMemLimitMiB / inputs.nodeCount / 1024) * commonCoeffs.nodeHeadroom).toFixed(2),
+            baselineMemoryGiB: baselineMemGiB.toFixed(2),
+            totalCalculatedMemory: rawCalculatedMemory.toFixed(2),
+            finalRoundedMemory: nodeMemory,
+            
+            // CPU только для модуля NAC 
+            rawNacCpuCores: ((rpsPerPod * coeffs.cpuPeakPerRps * commonCoeffs.safetyFactor * finalPods / inputs.nodeCount)).toFixed(2),
+            baselineCpuCores: coeffs.baselineNodeCpuP95.toFixed(2),
+            totalCalculatedCpu: rawNodeCpu.toFixed(2),
+            finalRoundedCpu: nodeCpu,
+            
+            // Процентное соотношение
+            nacMemoryPercent: (((rpsPerPod * podMemLimitMiB / inputs.nodeCount / 1024) * commonCoeffs.nodeHeadroom / rawCalculatedMemory) * 100).toFixed(1),
+            baselineMemoryPercent: ((baselineMemGiB / rawCalculatedMemory) * 100).toFixed(1)
         }
     };
 }
