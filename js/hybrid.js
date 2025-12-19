@@ -378,11 +378,20 @@ function exportToPDF() {
                 margin: [0, 0, 0, 20]
             },
 
+            // Текст о системных ресурсах перед примечаниями
+            {
+                text: [
+                    'Расчёт отражает потребность модуля NAC как продуктового компонента и включает дополнительные инфраструктурные ресурсы, необходимые для стабильной работы в текущих версиях продукта.'
+                ],
+                style: 'noteText',
+                margin: [0, 20, 0, 20]
+            },
+            
             // Примечания
             {
                 text: 'ПРИМЕЧАНИЯ:',
                 style: 'noteHeader',
-                margin: [0, 20, 0, 10]
+                margin: [0, 0, 0, 10]
             },
             {
                 ul: [
@@ -432,6 +441,12 @@ function exportToPDF() {
             notes: {
                 fontSize: 9,
                 lineHeight: 1.4
+            },
+            noteText: {
+                fontSize: 9,
+                lineHeight: 1.4,
+                alignment: 'justify',
+                margin: [0, 0, 0, 5]
             }
         },
         

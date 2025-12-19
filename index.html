@@ -74,13 +74,13 @@
         <section style="background: white; padding: 60px 20px; text-align: center; border-bottom: 1px solid #e0e0e0;">
             <div style="max-width: 800px; margin: 0 auto;">
                 <h1 style="font-size: 48px; font-weight: 300; color: #24A7B3; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase;">
-                    Калькулятор NAC
+                    Калькулятор Efros DO
                 </h1>
                 <p style="font-size: 18px; color: #6c757d; line-height: 1.8; font-weight: 300;">
                     Профессиональный расчет требований к инфраструктуре сетевого контроля доступа
                 </p>
                 <div style="margin-top: 40px;">
-                    <button onclick="document.getElementById('calculator-section').scrollIntoView({behavior: 'smooth'})" 
+                    <button onclick="document.getElementById('modules-section').scrollIntoView({behavior: 'smooth'})" 
                             style="background: #24A7B3; color: white; border: 2px solid #24A7B3; padding: 16px 48px; 
                                    font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 1.5px;
                                    cursor: pointer; transition: all 0.2s ease;"
@@ -92,10 +92,111 @@
             </div>
         </section>
 
+        <!-- Секция выбора модулей -->
+        <section style="background: white; padding: 40px 0; border-bottom: 1px solid #e0e0e0;" id="modules-section">
+            <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <h2 style="text-align: center; color: #333; font-size: 24px; margin-bottom: 30px; font-weight: 400;">
+                    Выберите модули для расчета
+                </h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; margin: 0 auto;">
+                    <!-- Модуль NAC -->
+                    <div class="module-card selected" id="nac-module" onclick="selectModule('nac')" 
+                         style="border: 3px solid var(--primary-color); background: white; padding: 0; cursor: pointer; transition: all 0.2s ease; position: relative;">
+                        
+                        <!-- Заголовок модуля -->
+                        <div style="background: var(--efros-gradient); color: white; padding: 20px; display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                🌐
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 600;">NAC</h3>
+                                <p style="margin: 0; opacity: 0.9; font-size: 14px;">Network Access Control</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Список функций -->
+                        <div style="padding: 25px; background: white;">
+                            <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: var(--primary-color); font-weight: bold;">✓</span>
+                                <span style="color: #333; font-size: 14px;">Аутентификация устройств</span>
+                            </div>
+                            <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: var(--primary-color); font-weight: bold;">✓</span>
+                                <span style="color: #333; font-size: 14px;">Контроль доступа к сети</span>
+                            </div>
+                            <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: var(--primary-color); font-weight: bold;">✓</span>
+                                <span style="color: #333; font-size: 14px;">RADIUS инфраструктура</span>
+                            </div>
+                            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: var(--primary-color); font-weight: bold;">✓</span>
+                                <span style="color: #333; font-size: 14px;">Поддержка MAB, PEAP, EAP-TLS</span>
+                            </div>
+                            
+                            <!-- Кнопка -->
+                            <button style="width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s ease;"
+                                    onmouseover="this.style.background='var(--secondary-color)'"
+                                    onmouseout="this.style.background='var(--primary-color)'">
+                                Настроить параметры
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Модуль CI -->
+                    <div class="module-card disabled" id="ci-module" 
+                         style="border: 2px solid #ddd; background: #f8f9fa; padding: 0; cursor: not-allowed; opacity: 0.7; position: relative;">
+                        
+                        <!-- Badge "Скоро" -->
+                        <div style="position: absolute; top: 15px; right: 15px; background: #ff6b6b; color: white; padding: 4px 12px; font-size: 12px; font-weight: 600;">
+                            Скоро
+                        </div>
+                        
+                        <!-- Заголовок модуля -->
+                        <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #666; padding: 20px; display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.8); color: #999; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                ⚙️
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #666;">CI</h3>
+                                <p style="margin: 0; opacity: 0.8; font-size: 14px;">Config Inspector</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Список функций -->
+                        <div style="padding: 25px; background: white;">
+                            <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #ccc; font-weight: bold;">✓</span>
+                                <span style="color: #999; font-size: 14px;">Мониторинг конфигураций</span>
+                            </div>
+                            <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #ccc; font-weight: bold;">✓</span>
+                                <span style="color: #999; font-size: 14px;">Анализ изменений</span>
+                            </div>
+                            <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #ccc; font-weight: bold;">✓</span>
+                                <span style="color: #999; font-size: 14px;">Compliance проверки</span>
+                            </div>
+                            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #ccc; font-weight: bold;">✓</span>
+                                <span style="color: #999; font-size: 14px;">Поддержка Cisco, Linux, Windows</span>
+                            </div>
+                            
+                            <!-- Кнопка -->
+                            <button style="width: 100%; padding: 12px; background: #ecf0f1; color: #95a5a6; border: none; font-size: 14px; font-weight: 600; cursor: not-allowed;">
+                                В разработке
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+
         <main class="main-content" id="calculator-section">
             <div class="hybrid-layout">
                 <div class="input-panel">
-                    <h3><svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #24A7B3;"><use href="#icon-rocket"/></svg> Быстрая настройка</h3>
+                    <h3 id="quick-setup"><svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #24A7B3;"><use href="#icon-rocket"/></svg> Быстрая настройка</h3>
                     
                     <div class="quick-presets">
                         <div class="preset-button" onclick="applyPreset('small')">
@@ -277,7 +378,15 @@
                     
                     <!-- Технические показатели -->
                     <div class="results-section">
-                        <h4><svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #666;"><use href="#icon-tools"/></svg> Технические показатели</h4>
+                        <h4><svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #666;"><use href="#icon-tools"/></svg> Технические показатели
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">
+                                    <strong>Примечание:</strong><br>
+                                    Расчёт отражает потребность модуля NAC как продуктового компонента и включает дополнительные инфраструктурные ресурсы, необходимые для стабильной работы в текущих версиях продукта.
+                                </span>
+                            </span>
+                        </h4>
                         
                         <div class="result-item">
                             <span class="result-label">Количество нод Kubernetes:</span>
@@ -403,7 +512,7 @@
                 <!-- Левая часть -->
                 <div style="text-align: left;">
                     <div style="color: var(--primary-color); font-weight: 600; font-size: 16px; margin-bottom: 5px;">
-                        Калькулятор NAC
+                        Калькулятор Efros DO
                     </div>
                     <div style="color: #6c757d; font-size: 14px;">
                         Расчет требований к инфраструктуре
@@ -439,7 +548,7 @@
                         © 2025 Efros Defence Operations
                     </div>
                     <div style="color: #adb5bd; font-size: 12px;">
-                        Калькулятор ресурсов NAC v1.0
+                        Multi-Module Calculator v1.0
                     </div>
                 </div>
             </div>
@@ -447,8 +556,8 @@
             <!-- Дополнительная информация -->
             <div style="border-top: 1px solid #dee2e6; margin-top: 25px; padding-top: 20px; text-align: center;">
                 <div style="color: #adb5bd; font-size: 12px; line-height: 1.5;">
-                    Инструмент для расчета требований к аппаратному обеспечению комплекса контроля доступа к сети (NAC)<br>
-                    Поддерживаемые методы аутентификации: MAB, PEAP (MS-CHAPv2), EAP-TLS
+                    Комплексный инструмент для расчета требований к аппаратному обеспечению модулей Efros DO<br>
+                    NAC: MAB, PEAP (MS-CHAPv2), EAP-TLS • CI: мониторинг конфигураций (в разработке)
                 </div>
             </div>
         </div>
@@ -460,5 +569,32 @@
     <script src="js/coefficients.js"></script>
     <script src="js/calculator.js"></script>
     <script src="js/hybrid.js"></script>
+    
+    <script>
+        function selectModule(module) {
+            if (module === 'ci') return; // CI модуль заблокирован
+            
+            // Прокручиваем к секции "Быстрая настройка"
+            document.getElementById('quick-setup').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+        
+        // Добавляем адаптивность для мобильных устройств
+        function checkMobileView() {
+            const moduleGrid = document.querySelector('[style*="grid-template-columns: 1fr 1fr"]');
+            if (window.innerWidth <= 768 && moduleGrid) {
+                moduleGrid.style.gridTemplateColumns = '1fr';
+                moduleGrid.style.maxWidth = '500px';
+            } else if (moduleGrid) {
+                moduleGrid.style.gridTemplateColumns = '1fr 1fr';
+                moduleGrid.style.maxWidth = '900px';
+            }
+        }
+        
+        window.addEventListener('resize', checkMobileView);
+        window.addEventListener('load', checkMobileView);
+    </script>
 </body>
 </html>
