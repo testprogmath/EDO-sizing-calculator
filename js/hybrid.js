@@ -3,6 +3,13 @@ let hybridSelectedMethod = '';
 document.addEventListener('DOMContentLoaded', function() {
     setupScenarioCards();
     setupInputListeners();
+    
+    // Устанавливаем начальные значения accounting для MAB (по умолчанию)
+    const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
+    if (accountingCheckbox) {
+        accountingCheckbox.checked = true; // MAB - включен по умолчанию
+    }
+    
     // Инициализируем превью и выполняем начальный расчет
     updatePreview();
     performHybridCalculation(); // Начальный расчет с MAB
@@ -30,6 +37,14 @@ function setupScenarioCards() {
                 document.getElementById('hybridOcspEnabled').checked = false;
             }
             
+            // Устанавливаем значения по умолчанию для Accounting
+            const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
+            if (hybridSelectedMethod === 'MAB') {
+                accountingCheckbox.checked = true; // для MAB включен по умолчанию
+            } else {
+                accountingCheckbox.checked = false; // для PEAP и EAP-TLS выключен по умолчанию
+            }
+            
             // Обновляем превью и пересчитываем
             updatePreview();
             performHybridCalculation();
@@ -39,7 +54,7 @@ function setupScenarioCards() {
 
 function setupInputListeners() {
     const inputs = document.querySelectorAll('#hybridDevices, #hybridConcurrent, #hybridBurstWindow, #hybridHeadroom, #hybridGatewayOverhead, #hybridNodeCount');
-    const checkboxes = document.querySelectorAll('#hybridOcspEnabled, #hybridGatewayEnabled');
+    const checkboxes = document.querySelectorAll('#hybridOcspEnabled, #hybridGatewayEnabled, #hybridAccountingEnabled');
     
     // Специальный обработчик для поля устройств
     const devicesInput = document.getElementById('hybridDevices');
@@ -126,6 +141,14 @@ function applyPreset(type) {
         ocspSection.style.display = 'none';
     }
     
+    // Устанавливаем значения по умолчанию для Accounting
+    const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
+    if (hybridSelectedMethod === 'MAB') {
+        accountingCheckbox.checked = true; // для MAB включен по умолчанию
+    } else {
+        accountingCheckbox.checked = false; // для PEAP и EAP-TLS выключен по умолчанию
+    }
+    
     updatePreview();
     performHybridCalculation(); // Пересчитываем после применения пресета
 }
@@ -208,6 +231,7 @@ function getHybridInputValues() {
         devices: devices,
         authMethod: hybridSelectedMethod,
         ocspEnabled: document.getElementById('hybridOcspEnabled').checked,
+        accountingEnabled: document.getElementById('hybridAccountingEnabled').checked,
         concurrentPct: parseFloat(document.getElementById('hybridConcurrent').value),
         burstWindow: parseInt(document.getElementById('hybridBurstWindow').value),
         headroom: parseFloat(document.getElementById('hybridHeadroom').value),

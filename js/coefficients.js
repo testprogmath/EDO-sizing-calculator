@@ -25,7 +25,10 @@ const COEFFICIENTS = {
         safetyFactor: 1.25,               // Запас между peak и limit по ресурсам pod
         maxNodeUtilization: 0.7,          // Максимальная целевая загрузка ноды (70%)
         nodeHeadroom: 1.15,               // Запас на ноде
-        requestRatio: 0.6                 // Соотношение request/limit
+        requestRatio: 0.6,                // Соотношение request/limit
+        accountingRpsReduction: 0.814815, // RPS уменьшается до 81.48% от исходного (22/27 ≈ 0.814815)
+        accountingCpuOverhead: 1.23,      // CPU увеличивается на 23%
+        accountingMemOverhead: 1.23       // RAM увеличивается на 23%
     }
 };
 
@@ -115,5 +118,5 @@ function getNodeMemorySize(devices, calculatedMemory, authMethod) {
         }
     }
     
-    return calculatedMemory;
+    return roundUpToMemorySize(calculatedMemory);
 }

@@ -240,6 +240,24 @@
                         </div>
                     </div>
                     
+                    <div class="accounting-section">
+                        <div class="accounting-header">
+                            <span class="icon"><svg width="16" height="16" style="vertical-align: middle; color: #24A7B3;"><use href="#icon-chart"/></svg></span>
+                            <span class="title">Учет трафика и активности (Accounting)</span>
+                        </div>
+                        <div class="accounting-description">
+                            RADIUS Accounting обеспечивает учет сессий пользователей, объема трафика и времени подключения. 
+                            Функция увеличивает нагрузку на систему: RPS снижается на ~19%, потребление CPU и RAM увеличивается на 23%.
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <input type="checkbox" id="hybridAccountingEnabled">
+                            <span>Включить RADIUS Accounting</span>
+                        </label>
+                        <div class="accounting-impact">
+                            <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #ff9800;"><use href="#icon-warning"/></svg> Accounting влияет на производительность системы
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="hybridDevices">
                             Количество устройств (шт)
@@ -566,9 +584,6 @@
     <!-- JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
-    <script src="js/coefficients.js"></script>
-    <script src="js/calculator.js"></script>
-    <script src="js/hybrid.js"></script>
     
     <script>
         function selectModule(module) {

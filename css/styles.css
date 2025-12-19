@@ -82,6 +82,41 @@
     }
 }
 
+/* Accounting section styles */
+.accounting-section {
+    background: #fff8f1;
+    border: 1px solid #ffecd9;
+    border-radius: 6px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.accounting-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #d68910;
+    font-size: 16px;
+}
+
+.accounting-description {
+    color: #795548;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.accounting-impact {
+    background: #fff3e0;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #e65100;
+    border-left: 3px solid #ff9800;
+}
+
 * {
     margin: 0;
     padding: 0;

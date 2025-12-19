@@ -85,8 +85,14 @@ function performCalculations(inputs) {
         targetRps = rpsWithHeadroom * (1 + coeffs.ocspOverheadPct / 100);
     }
     
-    // 6. Расчет количества подов
-    const calculatedPods = Math.ceil(targetRps / coeffs.nominalRpsPerPod);
+    // 6. RPS с учетом Accounting (увеличиваем targetRps)
+    if (inputs.accountingEnabled) {
+        targetRps = targetRps / commonCoeffs.accountingRpsReduction;
+    }
+    
+    // 7. Расчет количества подов (без дополнительного влияния Accounting на производительность)
+    const effectiveNominalRpsPerPod = coeffs.nominalRpsPerPod;
+    const calculatedPods = Math.ceil(targetRps / effectiveNominalRpsPerPod);
     const profile = getProfile(inputs.authMethod, inputs.devices);
     const minPods = profile.minPods;
     const recommendedPods = Math.max(calculatedPods, minPods);
@@ -96,20 +102,31 @@ function performCalculations(inputs) {
     // 7. Фактический RPS на под
     const rpsPerPod = targetRps / finalPods;
     
-    // 8. Расчет лимитов CPU для пода
-    const podCpuLimitCores = rpsPerPod * coeffs.cpuPeakPerRps * commonCoeffs.safetyFactor;
+    // 8. Расчет лимитов CPU для пода (с учетом Accounting)
+    let baseCpuPeakPerRps = coeffs.cpuPeakPerRps;
+    if (inputs.accountingEnabled) {
+        baseCpuPeakPerRps = coeffs.cpuPeakPerRps * commonCoeffs.accountingCpuOverhead;
+    }
+    const podCpuLimitCores = rpsPerPod * baseCpuPeakPerRps * commonCoeffs.safetyFactor;
     const podCpuLimitMCpu = Math.ceil(podCpuLimitCores * 1000 / 10) * 10; // Округляем до 10 mCPU
     
-    // 9. Расчет лимитов памяти для пода
+    // 9. Расчет лимитов памяти для пода (с учетом Accounting)
+    let baseMemPeakPerRpsMiB = coeffs.memPeakPerRpsMiB;
+    if (inputs.accountingEnabled) {
+        baseMemPeakPerRpsMiB = coeffs.memPeakPerRpsMiB * commonCoeffs.accountingMemOverhead;
+    }
     // Формула: =MAX(1024,CEILING(rpsPerPod*memPeakPerRpsMiB*safetyFactor,64))
-    const calculatedMemLimit = Math.ceil(rpsPerPod * coeffs.memPeakPerRpsMiB * commonCoeffs.safetyFactor / 64) * 64;
+    const calculatedMemLimit = Math.ceil(rpsPerPod * baseMemPeakPerRpsMiB * commonCoeffs.safetyFactor / 64) * 64;
     const podMemLimitMiB = Math.max(1024, calculatedMemLimit);
+    
+    // Для детализации NAC - используем рассчитанное значение без минимума
+    const podMemLimitForDetailsNAC = calculatedMemLimit;
     
     // 10. Расчет requests (60% от limits)
     const podCpuRequestMCpu = Math.ceil(podCpuLimitMCpu * commonCoeffs.requestRatio / 10) * 10;
     const podMemRequestMiB = Math.ceil(podMemLimitMiB * commonCoeffs.requestRatio / 64) * 64;
     
-    // 11. Расчет требований к нодам
+    // 11. Расчет требований к нодам (CPU уже учитывает Accounting в podCpuLimitCores)
     const rawNodeCpu = (podCpuLimitCores * finalPods / inputs.nodeCount) + coeffs.baselineNodeCpuP95;
     const nodeCpu = roundUpToCpuSize(rawNodeCpu);
     
@@ -167,20 +184,21 @@ function performCalculations(inputs) {
         
         // Детализация модуля NAC
         nacRadiusDetails: {
-            // "Чистые" требования модуля NAC (без baseline и округления)
-            rawNacMemoryGiB: ((rpsPerPod * podMemLimitMiB / inputs.nodeCount / 1024) * commonCoeffs.nodeHeadroom).toFixed(2),
+            // "Чистые" требования модуля NAC (без baseline и округления, с учетом accounting)  
+            // Формула: (подов_на_ноду * память_на_под) в ГБ
+            rawNacMemoryGiB: ((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024 * commonCoeffs.nodeHeadroom).toFixed(2),
             baselineMemoryGiB: baselineMemGiB.toFixed(2),
             totalCalculatedMemory: rawCalculatedMemory.toFixed(2),
             finalRoundedMemory: nodeMemory,
             
-            // CPU только для модуля NAC 
-            rawNacCpuCores: ((rpsPerPod * coeffs.cpuPeakPerRps * commonCoeffs.safetyFactor * finalPods / inputs.nodeCount)).toFixed(2),
+            // CPU только для модуля NAC (с учетом accounting)
+            rawNacCpuCores: ((rpsPerPod * baseCpuPeakPerRps * commonCoeffs.safetyFactor * finalPods / inputs.nodeCount)).toFixed(2),
             baselineCpuCores: coeffs.baselineNodeCpuP95.toFixed(2),
             totalCalculatedCpu: rawNodeCpu.toFixed(2),
             finalRoundedCpu: nodeCpu,
             
-            // Процентное соотношение
-            nacMemoryPercent: (((rpsPerPod * podMemLimitMiB / inputs.nodeCount / 1024) * commonCoeffs.nodeHeadroom / rawCalculatedMemory) * 100).toFixed(1),
+            // Процентное соотношение (с учетом accounting)
+            nacMemoryPercent: ((((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024 * commonCoeffs.nodeHeadroom) / rawCalculatedMemory) * 100).toFixed(1),
             baselineMemoryPercent: ((baselineMemGiB / rawCalculatedMemory) * 100).toFixed(1)
         }
     };
