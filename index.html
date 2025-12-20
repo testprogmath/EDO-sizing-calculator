@@ -222,59 +222,75 @@
                         </div>
                     </div>
                     
-                    <div class="ocsp-section" id="hybridOcspSection" style="display: none;">
-                        <div class="ocsp-header">
-                            <span class="icon"><svg width="16" height="16" style="vertical-align: middle; color: #24A7B3;"><use href="#icon-search"/></svg></span>
-                            <span class="title">Дополнительные опции безопасности</span>
-                        </div>
-                        <div class="ocsp-description">
-                            Online Certificate Status Protocol (OCSP) обеспечивает проверку статуса сертификатов в реальном времени, 
-                            что повышает безопасность, но добавляет дополнительную нагрузку на систему.
-                        </div>
-                        <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <input type="checkbox" id="hybridOcspEnabled">
-                            <span>Включить OCSP (Online Certificate Status Protocol)</span>
-                        </label>
-                        <div class="ocsp-impact">
-                            <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #ff9800;"><use href="#icon-warning"/></svg> OCSP добавляет примерно 14% дополнительной нагрузки для проверки статуса сертификатов
-                        </div>
-                    </div>
-                    
-                    <div class="accounting-section">
-                        <div class="accounting-header">
-                            <span class="icon"><svg width="16" height="16" style="vertical-align: middle; color: #24A7B3;"><use href="#icon-chart"/></svg></span>
-                            <span class="title">Учет трафика и активности (Accounting)</span>
-                        </div>
-                        <div class="accounting-description">
-                            RADIUS Accounting обеспечивает учет сессий пользователей, объема трафика и времени подключения. 
-                            Функция увеличивает нагрузку на систему: RPS снижается на ~19%, потребление CPU и RAM увеличивается на 23%.
-                        </div>
-                        <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <input type="checkbox" id="hybridAccountingEnabled">
-                            <span>Включить RADIUS Accounting</span>
-                        </label>
-                        <div class="accounting-impact">
-                            <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #ff9800;"><use href="#icon-warning"/></svg> Accounting влияет на производительность системы
+                    <!-- Gateway отдельно -->
+                    <div class="additional-options" style="margin-top: 20px; margin-bottom: 15px;">
+                        <div class="options-row" style="justify-content: flex-start;">
+                            <!-- Gateway toggle -->
+                            <div class="toggle-option">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="hybridGatewayEnabled" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">
+                                    <span class="toggle-icon">🚪</span> API Gateway
+                                    <span class="tooltip" data-tooltip="Gateway добавляет дополнительную нагрузку к системе">ⓘ</span>
+                                </span>
+                            </div>
+                            
+                            <!-- Gateway overhead input -->
+                            <div id="gatewayOverheadContainer" style="display: flex; align-items: center; gap: 10px; margin-left: 20px;">
+                                <label for="hybridGatewayOverhead" style="font-size: 14px; color: #666;">Overhead:</label>
+                                <input type="number" id="hybridGatewayOverhead" min="0" max="50" value="10" step="5" 
+                                       style="width: 60px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                <span style="font-size: 14px; color: #666;">%</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- MAC-спуфинг секция (только для MAB) -->
-                    <div class="accounting-section" id="spoofingSection" style="display: none; background: #fff3e0; border-color: #ffcc80;">
-                        <div class="accounting-header" style="color: #e65100;">
-                            <span class="icon"><svg width="16" height="16" style="vertical-align: middle; color: #e65100;"><use href="#icon-shield"/></svg></span>
-                            <span class="title">Защита от MAC-спуфинга</span>
+                    <!-- Дополнительные опции -->
+                    <div class="additional-options">
+                        <h4 style="margin: 0 0 15px 0; color: #333; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Дополнительные опции</h4>
+                        
+                        <!-- Вторая строка: Accounting и MAC-спуфинг -->
+                        <div class="options-row" style="margin-bottom: 15px;">
+                            <!-- Accounting toggle -->
+                            <div class="toggle-option">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="hybridAccountingEnabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">
+                                    <span class="toggle-icon">📊</span> RADIUS Accounting
+                                    <span class="tooltip" data-tooltip="Учет сессий и трафика (-19% RPS, +23% CPU/RAM)">ⓘ</span>
+                                </span>
+                            </div>
+                            
+                            <!-- MAC-спуфинг toggle (только для MAB) -->
+                            <div class="toggle-option" id="spoofingOption" style="display: none;">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="hybridSpoofingEnabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">
+                                    <span class="toggle-icon">🛡️</span> MAC-спуфинг защита
+                                    <span class="tooltip" data-tooltip="Защита от подмены MAC-адресов (требует Accounting)">ⓘ</span>
+                                </span>
+                            </div>
                         </div>
-                        <div class="accounting-description">
-                            Защита от подмены MAC-адресов повышает безопасность, но увеличивает нагрузку на систему. 
-                            Доступно только для MAB с включенным аккаунтингом.
-                        </div>
-                        <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <input type="checkbox" id="hybridSpoofingEnabled">
-                            <span>Включить защиту от MAC-спуфинга</span>
-                        </label>
-                        <div class="accounting-impact">
-                            <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #ff9800;"><use href="#icon-warning"/></svg> 
-                            Защита от MAC-спуфинга влияет на производительность системы
+                        
+                        <!-- Третья строка: OCSP -->
+                        <div class="options-row">
+                            <!-- OCSP toggle (только для EAP-TLS) -->
+                            <div class="toggle-option" id="ocspOption" style="display: none;">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="hybridOcspEnabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">
+                                    <span class="toggle-icon">🔐</span> OCSP
+                                    <span class="tooltip" data-tooltip="Проверка статуса сертификатов в реальном времени (+14% нагрузки)">ⓘ</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     
@@ -332,22 +348,6 @@
                                     </label>
                                     <input type="number" id="hybridHeadroom" min="0" max="100" value="25" step="5">
                                 </div>
-                                
-                                <div class="form-group">
-                                    <label for="hybridGatewayOverhead">
-                                        Надбавка Gateway (%)
-                                        <span class="tooltip" data-tooltip="Процент дополнительной нагрузки от Gateway">ⓘ</span>
-                                    </label>
-                                    <input type="number" id="hybridGatewayOverhead" min="0" max="50" value="10" step="5">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group" style="margin-top: 15px;">
-                                <label style="display: flex; align-items: center; gap: 10px;">
-                                    <input type="checkbox" id="hybridGatewayEnabled" checked>
-                                    Учитывать накладные расходы Gateway
-                                    <span class="tooltip" data-tooltip="Дополнительная нагрузка от API Gateway">ⓘ</span>
-                                </label>
                             </div>
                         </div>
                     </div>
