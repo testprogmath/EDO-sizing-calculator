@@ -369,8 +369,22 @@
                         <svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #24A7B3;"><use href="#icon-chart"/></svg> Результаты расчета
                     </h3>
                     
-                    <!-- Бизнес-показатели -->
-                    <div class="results-section">
+                    <!-- Вкладки для результатов -->
+                    <div class="tabs-container">
+                        <div class="tabs-header">
+                            <button class="tab-button active" onclick="switchTab('business')">
+                                <span class="tab-icon">💼</span>
+                                Бизнес-показатели
+                            </button>
+                            <button class="tab-button" onclick="switchTab('technical')">
+                                <span class="tab-icon">⚙️</span>
+                                Технические показатели
+                            </button>
+                        </div>
+                        
+                        <!-- Бизнес-показатели -->
+                        <div id="business-tab" class="tab-content active">
+                            <div class="results-section">
                         <h4><svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #24A7B3;"><use href="#icon-briefcase"/></svg> Бизнес-показатели</h4>
                         
                         <h5 style="color: var(--primary-color); margin: 20px 0 15px 0;">Требования к аппаратному обеспечению</h5>
@@ -412,10 +426,12 @@
                             <strong>Примечание:</strong> В состав ПК «Efros DO» входит встроенная СУБД «PostgreSQL», которую допускается использовать при пилотной эксплуатации комплекса. При этом необходимо учитывать, что при больших нагрузках работоспособность комплекса не гарантирована. Для штатной эксплуатации требуется внешняя СУБД, которая не входит в комплект поставки комплекса.<br><br>
                             При установке встроенной или внешней СУБД на сервер комплекса объем жесткого диска должен обеспечивать корректную работу комплекса.
                         </div>
-                    </div>
-                    
-                    <!-- Технические показатели -->
-                    <div class="results-section">
+                            </div>
+                        </div>
+                        
+                        <!-- Технические показатели -->
+                        <div id="technical-tab" class="tab-content">
+                            <div class="results-section">
                         <h4><svg width="16" height="16" style="vertical-align: middle; margin-right: 5px; color: #666;"><use href="#icon-tools"/></svg> Технические показатели
                             <span class="tooltip">
                                 <span class="tooltip-icon">?</span>
@@ -518,6 +534,8 @@
                                 </div>
                             </div>
                         </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Экспорт -->
@@ -542,6 +560,26 @@
     <script src="js/hybrid.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    
+    <script>
+        function switchTab(tabName) {
+            // Убираем активный класс со всех вкладок и кнопок
+            const allTabs = document.querySelectorAll('.tab-content');
+            const allButtons = document.querySelectorAll('.tab-button');
+            
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            allButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Добавляем активный класс выбранной вкладке
+            if (tabName === 'business') {
+                document.getElementById('business-tab').classList.add('active');
+                document.querySelectorAll('.tab-button')[0].classList.add('active');
+            } else if (tabName === 'technical') {
+                document.getElementById('technical-tab').classList.add('active');
+                document.querySelectorAll('.tab-button')[1].classList.add('active');
+            }
+        }
+    </script>
 
     <!-- Подвал -->
     <footer style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-top: 1px solid #dee2e6; margin-top: 50px; padding: 30px 0;">
