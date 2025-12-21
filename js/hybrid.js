@@ -342,19 +342,60 @@ function displayHybridResults(results) {
     document.getElementById('hybridRpsPerPod').textContent = results.rpsPerPod;
     document.getElementById('hybridDbLoad').textContent = results.dbRequirements.dbLoad;
     
-    // Обновляем детализацию модуля NAC
+    // Выводим детализацию модуля NAC в консоль для разработчиков
     if (results.nacRadiusDetails) {
-        document.getElementById('rawNacMemory').textContent = results.nacRadiusDetails.rawNacMemoryGiB;
-        document.getElementById('nacMemoryPercent').textContent = results.nacRadiusDetails.nacMemoryPercent;
-        document.getElementById('baselineMemory').textContent = results.nacRadiusDetails.baselineMemoryGiB;
-        document.getElementById('baselineMemoryPercent').textContent = results.nacRadiusDetails.baselineMemoryPercent;
-        document.getElementById('totalCalculatedMemory').textContent = results.nacRadiusDetails.totalCalculatedMemory;
-        document.getElementById('finalRoundedMemory').textContent = results.nacRadiusDetails.finalRoundedMemory;
+        console.group('%c🔧 NAC Module Technical Details', 'color: #24A7B3; font-size: 16px; font-weight: bold');
         
-        document.getElementById('rawNacCpu').textContent = results.nacRadiusDetails.rawNacCpuCores;
-        document.getElementById('baselineCpu').textContent = results.nacRadiusDetails.baselineCpuCores;
-        document.getElementById('totalCalculatedCpu').textContent = results.nacRadiusDetails.totalCalculatedCpu;
-        document.getElementById('finalRoundedCpu').textContent = results.nacRadiusDetails.finalRoundedCpu;
+        console.group('%c📊 Memory Analysis (per node/узел)', 'color: #02A7B6; font-size: 14px');
+        console.table({
+            'NAC Module': {
+                'Memory (GB)': results.nacRadiusDetails.rawNacMemoryGiB,
+                'Percentage': results.nacRadiusDetails.nacMemoryPercent + '%'
+            },
+            'System Resources': {
+                'Memory (GB)': results.nacRadiusDetails.baselineMemoryGiB,
+                'Percentage': results.nacRadiusDetails.baselineMemoryPercent + '%'
+            },
+            'Total Calculated': {
+                'Memory (GB)': results.nacRadiusDetails.totalCalculatedMemory,
+                'Percentage': '100%'
+            },
+            'Final (Rounded)': {
+                'Memory (GB)': results.nacRadiusDetails.finalRoundedMemory,
+                'Percentage': '-'
+            }
+        });
+        console.groupEnd();
+        
+        console.group('%c⚡ CPU Analysis (per node/узел)', 'color: #02A7B6; font-size: 14px');
+        console.table({
+            'NAC Module': {
+                'CPU Cores': results.nacRadiusDetails.rawNacCpuCores
+            },
+            'System Resources': {
+                'CPU Cores': results.nacRadiusDetails.baselineCpuCores
+            },
+            'Total Calculated': {
+                'CPU Cores': results.nacRadiusDetails.totalCalculatedCpu
+            },
+            'Final (Rounded)': {
+                'CPU Cores': results.nacRadiusDetails.finalRoundedCpu
+            }
+        });
+        console.groupEnd();
+        
+        console.group('%c🎯 Resource Distribution', 'color: #02A7B6; font-size: 14px');
+        console.log('%cMemory Distribution:', 'color: #333; font-weight: bold');
+        console.log(`  NAC Pods: ${results.nacRadiusDetails.nacMemoryPercent}%`);
+        console.log(`  System: ${results.nacRadiusDetails.baselineMemoryPercent}%`);
+        console.log(`  Headroom: ${((results.nacRadiusDetails.finalRoundedMemory - results.nacRadiusDetails.totalCalculatedMemory) / results.nacRadiusDetails.finalRoundedMemory * 100).toFixed(1)}%`);
+        console.groupEnd();
+        
+        console.group('%c📋 Raw Calculation Data', 'color: #02A7B6; font-size: 14px');
+        console.log('Full NAC details object:', results.nacRadiusDetails);
+        console.groupEnd();
+        
+        console.groupEnd();
     }
     
     // Сохраняем для экспорта
@@ -453,7 +494,7 @@ function exportToPDF() {
                         ['Дисковое пространство', `${results.nodeStorage * inputs.nodeCount} ГБ SSD`, `${results.dbRequirements.storage} ГБ SSD`],
                         ['Сетевой интерфейс', '1 Гбит/с', '1 Гбит/с'],
                         ['Операционная система', 'Linux (Astra/РЕД ОС)', 'Linux (Astra/РЕД ОС)'],
-                        ['Kubernetes ноды', `${inputs.nodeCount} шт`, 'Внешний сервис']
+                        ['Kubernetes узлы', `${inputs.nodeCount} шт`, 'Внешний сервис']
                     ]
                 },
                 layout: 'lightHorizontalLines',
@@ -483,6 +524,119 @@ function exportToPDF() {
                     'Все серверы должны иметь резервирование питания и сети'
                 ],
                 style: 'notes'
+            },
+            
+            // Страница с георезервированием
+            {
+                text: 'Рекомендации по геораспределению и отказоустойчивости',
+                pageBreak: 'before',
+                style: 'header',
+                alignment: 'center',
+                margin: [0, 0, 0, 20]
+            },
+            
+            // Минимальные требования
+            {
+                text: 'Минимальные требования для ПК «Efros DO»',
+                style: 'tableHeader',
+                margin: [0, 0, 0, 10]
+            },
+            {
+                ul: [
+                    `Минимальная конфигурация: 3 узла (3+3+1 или 2+2+1 или 1+1+1)`,
+                    `Рекомендуемая конфигурация: 5 и более узлов для обеспечения высокой доступности`,
+                    `CPU на узел: минимум 8 ядер, рекомендуется 16 ядер`,
+                    `Память на узел: минимум 32 ГБ, рекомендуется 64 ГБ`
+                ],
+                margin: [20, 0, 0, 20]
+            },
+            
+            // Геораспределенная установка
+            {
+                text: 'Геораспределенная установка',
+                style: 'tableHeader',
+                margin: [0, 0, 0, 10]
+            },
+            {
+                ul: [
+                    'Отказоустойчивость: Сохранение работоспособности при выходе из строя одного ЦОД',
+                    'Балансировка нагрузки: Автоматическое перераспределение между ЦОД',
+                    'Keepalived: VRRP 112 с multicast на 224.0.0.18 для высокой доступности',
+                    'Важно: Необходимо отключить SWAP-файл в системе'
+                ],
+                margin: [20, 0, 0, 20]
+            },
+            
+            // Текущая конфигурация
+            {
+                text: 'Анализ текущей конфигурации',
+                style: 'tableHeader',
+                margin: [0, 0, 0, 10]
+            },
+            {
+                text: [
+                    {text: 'Количество узлов: ', bold: true},
+                    `${inputs.nodeCount} узлов`,
+                    inputs.nodeCount < 3 ? ' ⚠️ Ниже минимума!' : 
+                    inputs.nodeCount <= 4 ? ' - минимальная конфигурация' : ' - рекомендуемая конфигурация'
+                ],
+                margin: [0, 0, 0, 5]
+            },
+            {
+                text: [
+                    {text: 'CPU на узел: ', bold: true},
+                    `${results.nodeCpu} ядер`,
+                    results.nodeCpu < 8 ? ' ⚠️ Ниже минимума!' :
+                    results.nodeCpu < 16 ? ' - минимальная конфигурация' : ' - рекомендуемая конфигурация'
+                ],
+                margin: [0, 0, 0, 5]
+            },
+            {
+                text: [
+                    {text: 'Память на узел: ', bold: true},
+                    `${results.nodeMemory} ГБ`,
+                    results.nodeMemory < 32 ? ' ⚠️ Ниже минимума!' :
+                    results.nodeMemory < 64 ? ' - минимальная конфигурация' : ' - рекомендуемая конфигурация'
+                ],
+                margin: [0, 0, 0, 20]
+            },
+            
+            // Схема геораспределения
+            {
+                text: 'Рекомендуемая схема геораспределения',
+                style: 'tableHeader',
+                margin: [0, 0, 0, 10]
+            },
+            {
+                ul: inputs.nodeCount === 3 ? [
+                    'Вариант 1: 1+1+1 (три ЦОД)',
+                    'Вариант 2: 2+1 (два ЦОД)'
+                ] : inputs.nodeCount === 5 ? [
+                    'Вариант 1: 2+2+1 (три ЦОД)',
+                    'Вариант 2: 3+2 (два ЦОД)'
+                ] : inputs.nodeCount === 7 ? [
+                    'Рекомендуется: 3+3+1 (три ЦОД)',
+                    'Альтернатива: 4+3 (два ЦОД)'
+                ] : [
+                    'Равномерное распределение по 2-3 ЦОД',
+                    'Обеспечение кворума в каждом ЦОД'
+                ],
+                margin: [20, 0, 0, 20]
+            },
+            
+            // Важная информация
+            {
+                text: 'Важная информация по установке',
+                style: 'tableHeader',
+                margin: [0, 0, 0, 10]
+            },
+            {
+                ol: [
+                    'При установке на базе инфраструктуры Kubernetes необходимо отключить SWAP-файл',
+                    'Для edo-dns-service необходимо выделить не менее 2 ГБ памяти и 2 ядер процессора на каждый контейнер',
+                    'Точные требования к аппаратному обеспечению для узла определяются проектным решением и инфраструктурой заказчика'
+                ],
+                margin: [20, 0, 0, 0]
             }
         ],
 

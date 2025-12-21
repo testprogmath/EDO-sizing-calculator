@@ -304,7 +304,7 @@
                     
                     <div class="form-group">
                         <label for="hybridNodeCount">
-                            Количество нод в кластере
+                            Количество узлов в кластере
                             <span class="tooltip" data-tooltip="Количество серверов Kubernetes в кластере">ⓘ</span>
                         </label>
                         <select id="hybridNodeCount">
@@ -443,17 +443,17 @@
                         </h4>
                         
                         <div class="result-item">
-                            <span class="result-label">Количество нод Kubernetes:</span>
+                            <span class="result-label">Количество узлов Kubernetes:</span>
                             <span class="result-value"><span id="hybridResultNodes">-</span> шт</span>
                         </div>
                         
                         <div class="result-item">
-                            <span class="result-label">CPU на ноду:</span>
+                            <span class="result-label">CPU на узел:</span>
                             <span class="result-value"><span id="hybridNodeCpu">-</span> vCPU</span>
                         </div>
                         
                         <div class="result-item">
-                            <span class="result-label">Память на ноду:</span>
+                            <span class="result-label">Память на узел:</span>
                             <span class="result-value"><span id="hybridNodeMemory">-</span> GiB</span>
                         </div>
                         
@@ -488,53 +488,6 @@
                             <span class="result-value"><span id="hybridDbLoad">-</span> операций/сек</span>
                         </div>
                     </div>
-                    
-                    <!-- Детализация модуля NAC -->
-                    <div class="advanced-section" style="margin-top: 20px;">
-                        <div class="advanced-header" onclick="toggleNacDetails()" style="cursor: pointer;">
-                            <span class="expand-icon" id="nacDetailsIcon">▶</span>
-                            <span style="margin-left: 8px;">📊 Детализация модуля NAC</span>
-                        </div>
-                        <div class="advanced-content" id="nacDetailsContent">
-                            <div style="margin-top: 15px;">
-                                <h5 style="color: var(--primary-color); margin-bottom: 10px;">Память на ноду (без baseline и округления)</h5>
-                                <div class="result-item">
-                                    <span class="result-label">Модуль NAC требует:</span>
-                                    <span class="result-value"><span id="rawNacMemory">-</span> ГБ (<span id="nacMemoryPercent">-</span>%)</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Системные ресурсы:</span>
-                                    <span class="result-value"><span id="baselineMemory">-</span> ГБ (<span id="baselineMemoryPercent">-</span>%)</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Итого рассчитано:</span>
-                                    <span class="result-value"><span id="totalCalculatedMemory">-</span> ГБ</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Округлено до стандарта:</span>
-                                    <span class="result-value"><span id="finalRoundedMemory">-</span> ГБ</span>
-                                </div>
-                                
-                                <h5 style="color: var(--primary-color); margin-bottom: 10px; margin-top: 20px;">CPU на ноду (без baseline и округления)</h5>
-                                <div class="result-item">
-                                    <span class="result-label">Модуль NAC требует:</span>
-                                    <span class="result-value"><span id="rawNacCpu">-</span> ядер</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Системные ресурсы:</span>
-                                    <span class="result-value"><span id="baselineCpu">-</span> ядер</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Итого рассчитано:</span>
-                                    <span class="result-value"><span id="totalCalculatedCpu">-</span> ядер</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Округлено до стандарта:</span>
-                                    <span class="result-value"><span id="finalRoundedCpu">-</span> ядер</span>
-                                </div>
-                            </div>
-                        </div>
-                            </div>
                         </div>
                     </div>
                     

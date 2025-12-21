@@ -201,20 +201,22 @@ function performCalculations(inputs) {
         nacRadiusDetails: {
             // "Чистые" требования модуля NAC (без baseline и округления, с учетом accounting)  
             // Формула: (подов_на_ноду * память_на_под) в ГБ
-            rawNacMemoryGiB: ((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024 * commonCoeffs.nodeHeadroom).toFixed(2),
+            rawNacMemoryGiB: ((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024).toFixed(2),
             baselineMemoryGiB: baselineMemGiB.toFixed(2),
             totalCalculatedMemory: rawCalculatedMemory.toFixed(2),
             finalRoundedMemory: nodeMemory,
             
             // CPU только для модуля NAC (с учетом accounting)
-            rawNacCpuCores: ((rpsPerPod * baseCpuPeakPerRps * commonCoeffs.safetyFactor * finalPods / inputs.nodeCount)).toFixed(2),
+            rawNacCpuCores: ((finalPods / inputs.nodeCount) * podCpuLimitCores).toFixed(2),
             baselineCpuCores: coeffs.baselineNodeCpuP95.toFixed(2),
             totalCalculatedCpu: rawNodeCpu.toFixed(2),
             finalRoundedCpu: nodeCpu,
             
-            // Процентное соотношение (с учетом accounting)
-            nacMemoryPercent: ((((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024 * commonCoeffs.nodeHeadroom) / rawCalculatedMemory) * 100).toFixed(1),
-            baselineMemoryPercent: ((baselineMemGiB / rawCalculatedMemory) * 100).toFixed(1)
+            // Процентное соотношение - NAC память от общей памяти без headroom
+            // nacMemory = память подов NAC на ноду
+            // totalMemoryWithoutHeadroom = nacMemory + baseline (без headroom)
+            nacMemoryPercent: ((((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024) / (((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024) + baselineMemGiB)) * 100).toFixed(1),
+            baselineMemoryPercent: ((baselineMemGiB / (((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024) + baselineMemGiB)) * 100).toFixed(1)
         }
     };
 }

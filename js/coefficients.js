@@ -23,9 +23,15 @@ const COEFFICIENTS = {
     
     common: {
         safetyFactor: 1.25,               // Запас между peak и limit по ресурсам pod
-        maxNodeUtilization: 0.7,          // Максимальная целевая загрузка ноды (70%)
-        nodeHeadroom: 1.15,               // Запас на ноде
+        maxNodeUtilization: 0.7,          // Максимальная целевая загрузка узла (70%)
+        nodeHeadroom: 1.15,               // Запас на узле
         requestRatio: 0.6,                // Соотношение request/limit
+        // Минимальные требования согласно документации (Таблица 3)
+        minNodeCpu: 8,                    // Минимум 8 ядер на узел
+        recommendedNodeCpu: 16,           // Рекомендуется 16 ядер на узел  
+        minNodeMemory: 32,                // Минимум 32 ГБ памяти на узел
+        recommendedNodeMemory: 64,        // Рекомендуется 64 ГБ памяти на узел
+        minNodeCount: 3,                  // Минимум 3 узла для работы ПК
         accountingRpsReduction: 0.814815, // RPS уменьшается до 81.48% от исходного (22/27 ≈ 0.814815)
         accountingCpuOverhead: 1.23,      // CPU увеличивается на 23%
         accountingMemOverhead: 1.23,      // RAM увеличивается на 23%
