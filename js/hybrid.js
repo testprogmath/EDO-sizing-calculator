@@ -530,7 +530,7 @@ function exportToPDF() {
                             {text: 'Сервер NAC', style: 'tableHeaderCell'},
                             {text: 'Сервер БД', style: 'tableHeaderCell'}
                         ],
-                        ['Процессор', `${results.totalCpu} ядер (2+ ГГц)`, `${results.dbRequirements.cpu} ядер (2+ ГГц)`],
+                        ['Процессор', `${results.totalCpu} ядер (≥2.0 ГГц)`, `${results.dbRequirements.cpu} ядер (≥2.0 ГГц)`],
                         ['Оперативная память', `${results.totalMemory} ГБ`, `${results.dbRequirements.memory} ГБ`],
                         ['Дисковое пространство', `${results.nodeStorage * inputs.nodeCount} ГБ SSD`, `${results.dbRequirements.storage} ГБ SSD`],
                         ['Сетевой интерфейс', '1 Гбит/с', '1 Гбит/с'],

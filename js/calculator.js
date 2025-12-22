@@ -295,6 +295,7 @@ function exportToCSV() {
     csv += 'Минимальное количество подов,' + results.minPods + '\n';
     csv += 'Рекомендуемое количество подов,' + results.recommendedPods + '\n';
     csv += 'CPU на ноду (vCPU),' + results.nodeCpu + '\n';
+    csv += 'Минимальная частота CPU (ГГц),≥2.0\n';
     csv += 'Память на ноду (GiB),' + results.nodeMemory + '\n';
     csv += 'Хранилище на ноду (GB),' + results.nodeStorage + '\n';
     csv += 'Общий CPU на кластер (vCPU),' + results.totalCpu + '\n';
@@ -374,7 +375,7 @@ function copyToClipboard() {
     
     text += 'Параметры серверов:\n';
     text += '                    Сервер NAC комплекса    Сервер СУБД\n';
-    text += 'Процессор:          от ' + results.nodeCpu + ' vCPU, 2.0+ ГГц    от ' + results.dbRequirements.cpu + ' vCPU, 2.0+ ГГц\n';
+    text += 'Процессор:          от ' + results.nodeCpu + ' vCPU, ≥2.0 ГГц    от ' + results.dbRequirements.cpu + ' vCPU, ≥2.0 ГГц\n';
     text += 'Оперативная память: от ' + results.nodeMemory + ' ГБ               от ' + results.dbRequirements.memory + ' ГБ\n';
     text += 'Жесткий диск:       от ' + results.nodeStorage + ' ГБ              от ' + results.dbRequirements.storage + ' ГБ\n';
     text += 'Сетевая карта:      от 10 Гбит/с            от ' + results.dbRequirements.network + '\n\n';
