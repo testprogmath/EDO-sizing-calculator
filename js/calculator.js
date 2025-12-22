@@ -282,7 +282,7 @@ function exportToCSV() {
     if (inputs.authMethod) {
         csv += '\nКонфигурация\n';
         csv += 'Метод аутентификации,' + inputs.authMethod + '\n';
-        csv += 'API Gateway,' + (inputs.gatewayEnabled ? 'Включен' : 'Отключен') + '\n';
+        csv += 'API Gateway,Включен (10% накладные расходы)\n';
         csv += 'RADIUS Accounting,' + (inputs.accountingEnabled ? 'Включен' : 'Отключен') + '\n';
         if (inputs.authMethod === 'EAP-TLS') {
             csv += 'OCSP проверка сертификатов,' + (inputs.ocspEnabled ? 'Включена' : 'Отключена') + '\n';

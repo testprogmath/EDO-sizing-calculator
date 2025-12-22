@@ -74,8 +74,8 @@ function setupScenarioCards() {
 }
 
 function setupInputListeners() {
-    const inputs = document.querySelectorAll('#hybridDevices, #hybridConcurrent, #hybridBurstWindow, #hybridHeadroom, #hybridGatewayOverhead, #hybridNodeCount');
-    const checkboxes = document.querySelectorAll('#hybridOcspEnabled, #hybridGatewayEnabled, #hybridAccountingEnabled, #hybridSpoofingEnabled');
+    const inputs = document.querySelectorAll('#hybridDevices, #hybridConcurrent, #hybridBurstWindow, #hybridHeadroom, #hybridNodeCount');
+    const checkboxes = document.querySelectorAll('#hybridOcspEnabled, #hybridAccountingEnabled, #hybridSpoofingEnabled');
     
     // Специальный обработчик для поля устройств
     const devicesInput = document.getElementById('hybridDevices');
@@ -101,19 +101,6 @@ function setupInputListeners() {
     
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
-            // Специальная логика для Gateway
-            if (this.id === 'hybridGatewayEnabled') {
-                const overheadContainer = document.getElementById('gatewayOverheadContainer');
-                const overheadInput = document.getElementById('hybridGatewayOverhead');
-                if (this.checked) {
-                    overheadContainer.style.opacity = '1';
-                    overheadInput.disabled = false;
-                } else {
-                    overheadContainer.style.opacity = '0.5';
-                    overheadInput.disabled = true;
-                }
-            }
-            
             // Специальная логика для MAC-спуфинга
             if (this.id === 'hybridSpoofingEnabled' && this.checked) {
                 // Если включаем MAC-спуфинг, автоматически включаем аккаунтинг
@@ -304,8 +291,8 @@ function getHybridInputValues() {
         concurrentPct: parseFloat(document.getElementById('hybridConcurrent').value),
         burstWindow: parseInt(document.getElementById('hybridBurstWindow').value),
         headroom: parseFloat(document.getElementById('hybridHeadroom').value),
-        gatewayEnabled: document.getElementById('hybridGatewayEnabled').checked,
-        gatewayOverhead: parseFloat(document.getElementById('hybridGatewayOverhead').value),
+        gatewayEnabled: true,  // Всегда включен
+        gatewayOverhead: 10,   // Всегда 10%
         nodeCount: nodeCount
     };
 }
@@ -489,7 +476,7 @@ function exportToPDF() {
             },
             {
                 ul: [
-                    inputs.gatewayEnabled ? '✅ API Gateway включен' : '❌ API Gateway отключен',
+                    '✅ API Gateway включен (10% накладные расходы)',
                     inputs.accountingEnabled ? '✅ RADIUS Accounting включен' : '❌ RADIUS Accounting отключен',
                     ...(inputs.authMethod === 'EAP-TLS' ? [inputs.ocspEnabled ? '✅ OCSP проверка сертификатов включена' : '❌ OCSP проверка сертификатов отключена'] : []),
                     ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ MAC-спуфинг защита включена' : '❌ MAC-спуфинг защита отключена'] : [])
@@ -512,7 +499,7 @@ function exportToPDF() {
                         [{text: 'Компонент', style: 'tableHeaderCell'}, {text: 'Характеристики', style: 'tableHeaderCell'}],
                         ['Количество устройств', deviceCount],
                         ['Метод аутентификации', authMethodRu[inputs.authMethod] || inputs.authMethod],
-                        ['API Gateway', inputs.gatewayEnabled ? 'Включен' : 'Отключен'],
+                        ['API Gateway', 'Включен (10% накладные расходы)'],
                         ['RADIUS Accounting', inputs.accountingEnabled ? 'Включен' : 'Отключен'],
                         ...(inputs.authMethod === 'EAP-TLS' ? [['OCSP проверка сертификатов', inputs.ocspEnabled ? 'Включена' : 'Отключена']] : []),
                         ...(inputs.authMethod === 'MAB' ? [['MAC-спуфинг защита', inputs.spoofingEnabled ? 'Включена' : 'Отключена']] : []),
