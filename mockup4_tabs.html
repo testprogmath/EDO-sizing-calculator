@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мокап 4 - Табы для группировки</title>
+    <style>
+        :root {
+            --primary: #02A7B6;
+            --primary-light: #24A7B3;
+            --secondary: #005EB8;
+            --dark: #1e2329;
+            --gray: #6c757d;
+            --light: #f7f8fa;
+            --border: #dee2e6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+        }
+        
+        .app-header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        
+        .logo-text h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .logo-text p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .quick-btn {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-btn:hover {
+            background: var(--light);
+            border-color: var(--primary);
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+        
+        .calculator-card {
+            background: white;
+            border-radius: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+        
+        
+        .tabs-content {
+            padding: 40px;
+        }
+        
+        
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .preset-card {
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: 0;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .preset-card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(2, 167, 182, 0.15);
+        }
+        
+        .preset-card.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .preset-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .preset-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .preset-desc {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input,
+        .form-select {
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 0;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 167, 182, 0.1);
+        }
+        
+        .slider-field {
+            margin-bottom: 32px;
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .slider-label {
+            font-weight: 500;
+        }
+        
+        .slider-value {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .slider-track {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .slider-track::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(2, 167, 182, 0.3);
+        }
+        
+        .switches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .switch-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--light);
+            border-radius: 0;
+            transition: all 0.2s;
+        }
+        
+        .switch-item:hover {
+            background: #e8f7f9;
+        }
+        
+        .switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            margin-right: 12px;
+        }
+        
+        .switch input {
+            display: none;
+        }
+        
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--border);
+            transition: .3s;
+            border-radius: 26px;
+        }
+        
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        
+        .switch input:checked + .switch-slider {
+            background: var(--primary);
+        }
+        
+        .switch input:checked + .switch-slider:before {
+            transform: translateX(22px);
+        }
+        
+        .switch-label {
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .switch-badge {
+            background: var(--warning);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .calculate-section {
+            padding: 32px;
+            background: var(--light);
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        
+        .calculate-btn {
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 14px rgba(2, 167, 182, 0.3);
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(2, 167, 182, 0.4);
+        }
+        
+        .results-section {
+            margin-top: 40px;
+            padding: 32px;
+            background: linear-gradient(135deg, rgba(2, 167, 182, 0.05) 0%, rgba(36, 167, 179, 0.05) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(2, 167, 182, 0.2);
+        }
+        
+        .results-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .results-header h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        .results-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 24px;
+            border-radius: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .result-card h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--dark);
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--light);
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        /* Анимация для live indicator */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        
+        /* Стили для scenario pills */
+        .scenario-pill {
+            padding: 8px 16px;
+            background: var(--light);
+            border: 2px solid var(--border);
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-align: center;
+            user-select: none;
+        }
+        
+        .scenario-pill:hover {
+            border-color: var(--primary);
+            background: rgba(2, 167, 182, 0.05);
+        }
+        
+        .scenario-pill.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Стили для кнопок экспорта */
+        .export-btn:hover {
+            background: var(--light) !important;
+            border-color: var(--primary) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="images/efros-logo.svg" alt="Efros Defence Operations" style="height: 45px; width: auto;">
+                <div class="logo-text">
+                    <h1>Efros DO Calculator</h1>
+                    <p>Профессиональный расчет инфраструктуры</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- Секция выбора модулей -->
+    <section style="background: white; padding: 60px 0; border-bottom: 1px solid #e0e0e0;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+            <h2 style="text-align: center; color: #333; font-size: 28px; margin-bottom: 40px; font-weight: 300; letter-spacing: 1px;">
+                Выберите модули для расчета
+            </h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; margin: 0 auto;">
+                <!-- Модуль NAC -->
+                <div class="module-card selected" id="nac-module" onclick="selectModule('nac')" 
+                     style="border: 3px solid var(--primary); background: white; padding: 0; cursor: pointer; transition: all 0.2s ease; position: relative;">
+                    
+                    <!-- Заголовок модуля -->
+                    <div style="background: linear-gradient(135deg, #02A7B6 0%, #24A7B3 100%); color: white; padding: 20px; display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                            🌐
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 18px; font-weight: 600;">NAC</h3>
+                            <p style="margin: 0; opacity: 0.9; font-size: 14px;">Network Access Control</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Список функций -->
+                    <div style="padding: 25px; background: white;">
+                        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: var(--primary); font-weight: bold;">✓</span>
+                            <span style="color: #333; font-size: 14px;">Аутентификация устройств</span>
+                        </div>
+                        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: var(--primary); font-weight: bold;">✓</span>
+                            <span style="color: #333; font-size: 14px;">Контроль доступа к сети</span>
+                        </div>
+                        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: var(--primary); font-weight: bold;">✓</span>
+                            <span style="color: #333; font-size: 14px;">RADIUS инфраструктура</span>
+                        </div>
+                        <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: var(--primary); font-weight: bold;">✓</span>
+                            <span style="color: #333; font-size: 14px;">Поддержка MAB, PEAP, EAP-TLS</span>
+                        </div>
+                        
+                        <!-- Кнопка -->
+                        <button style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s ease;"
+                                onmouseover="this.style.background='#1e8e98'"
+                                onmouseout="this.style.background='var(--primary)'">
+                            Настроить параметры
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Модуль CI -->
+                <div class="module-card disabled" id="ci-module" 
+                     style="border: 2px solid #ddd; background: #f8f9fa; padding: 0; cursor: not-allowed; opacity: 0.7; position: relative;">
+                    
+                    <!-- Badge "Скоро" -->
+                    <div style="position: absolute; top: 15px; right: 15px; background: #ff6b6b; color: white; padding: 4px 12px; font-size: 12px; font-weight: 600;">
+                        Скоро
+                    </div>
+                    
+                    <!-- Заголовок модуля -->
+                    <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #666; padding: 20px; display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 50px; height: 50px; background: rgba(255, 255, 255, 0.8); color: #999; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                            ⚙️
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #666;">CI</h3>
+                            <p style="margin: 0; opacity: 0.8; font-size: 14px;">Config Inspector</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Список функций -->
+                    <div style="padding: 25px; background: white;">
+                        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #ccc; font-weight: bold;">✓</span>
+                            <span style="color: #999; font-size: 14px;">Мониторинг конфигураций</span>
+                        </div>
+                        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #ccc; font-weight: bold;">✓</span>
+                            <span style="color: #999; font-size: 14px;">Анализ изменений</span>
+                        </div>
+                        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #ccc; font-weight: bold;">✓</span>
+                            <span style="color: #999; font-size: 14px;">Compliance проверки</span>
+                        </div>
+                        <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #ccc; font-weight: bold;">✓</span>
+                            <span style="color: #999; font-size: 14px;">Поддержка Cisco, Linux, Windows</span>
+                        </div>
+                        
+                        <!-- Кнопка -->
+                        <button style="width: 100%; padding: 12px; background: #ecf0f1; color: #95a5a6; border: none; font-size: 14px; font-weight: 600; cursor: not-allowed;" disabled>
+                            В разработке
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+    
+    <div class="main-container" id="calculator-section">
+        <div class="calculator-card">
+            <div class="tabs-content">
+                <!-- Основные параметры -->
+                <div id="basic-tab">
+                    <div class="presets-grid">
+                        <div class="preset-card" onclick="applyPreset('small')">
+                            <div class="preset-icon">🏠</div>
+                            <div class="preset-title">Малый офис</div>
+                            <div class="preset-desc">до 2K устройств</div>
+                        </div>
+                        <div class="preset-card active" onclick="applyPreset('medium')">
+                            <div class="preset-icon">🏢</div>
+                            <div class="preset-title">Средний бизнес</div>
+                            <div class="preset-desc">2K-10K устройств</div>
+                        </div>
+                        <div class="preset-card" onclick="applyPreset('enterprise')">
+                            <div class="preset-icon">🏙️</div>
+                            <div class="preset-title">Корпорация</div>
+                            <div class="preset-desc">10K+ устройств</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Сценарии аутентификации как в index.html -->
+                    <div style="margin-bottom: 24px;">
+                        <label class="form-label">Сценарий аутентификации</label>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <div class="scenario-pill active" data-method="MAB">MAB</div>
+                            <div class="scenario-pill" data-method="PEAP">PEAP</div>
+                            <div class="scenario-pill" data-method="EAP-TLS">EAP-TLS</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="form-label">Количество устройств</label>
+                            <input type="number" class="form-input" id="hybridDevices" value="8000" min="1000" max="20000" step="100">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Количество узлов в кластере</label>
+                            <select class="form-select" id="hybridNodeCount">
+                                <option value="1">1 узел (разработка/тестирование)</option>
+                                <option value="3" selected>3 узла (базовая отказоустойчивость)</option>
+                                <option value="5">5 узлов (стандартная конфигурация)</option>
+                                <option value="7">7 узлов (повышенная надежность)</option>
+                                <option value="9">9 узлов (максимальная защита)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Дополнительные опции как отдельный блок -->
+            <div style="padding: 0 40px 40px; border-top: 1px solid var(--border);">
+                <h3 style="font-size: 18px; margin-bottom: 24px; color: var(--dark); display: flex; align-items: center; gap: 8px;">
+                    <span>🔧</span>Дополнительные опции
+                </h3>
+                
+                <!-- Gateway с overhead -->
+                <div style="display: flex; align-items: center; gap: 20px; padding: 16px; background: var(--light); border-radius: 0; margin-bottom: 16px;">
+                    <div class="switch-item" style="background: none; padding: 0; margin: 0;">
+                        <label class="switch">
+                            <input type="checkbox" checked id="hybridGatewayEnabled">
+                            <span class="switch-slider"></span>
+                        </label>
+                        <span class="switch-label">🚪 API Gateway</span>
+                    </div>
+                    <div id="gatewayOverheadContainer" style="display: flex; align-items: center; gap: 10px;">
+                        <label for="hybridGatewayOverhead" style="font-size: 14px; color: #666;">Накладные расходы:</label>
+                        <input type="number" id="hybridGatewayOverhead" min="0" max="50" value="10" step="5" 
+                               style="width: 60px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 0; font-size: 14px;">
+                        <span style="font-size: 14px; color: #666;">%</span>
+                    </div>
+                </div>
+                
+                <div class="switches-grid">
+                    <!-- RADIUS Accounting - всегда видимый, default зависит от метода -->
+                    <div class="switch-item">
+                        <label class="switch">
+                            <input type="checkbox" checked id="hybridAccountingEnabled" onchange="updateAccountingDependency()">
+                            <span class="switch-slider"></span>
+                        </label>
+                        <span class="switch-label">📊 RADIUS Accounting</span>
+                        <span class="switch-badge">+23%</span>
+                    </div>
+                    
+                    <!-- OCSP - только для EAP-TLS -->
+                    <div class="switch-item" id="ocspOption" style="display: none;">
+                        <label class="switch">
+                            <input type="checkbox" id="hybridOcspEnabled">
+                            <span class="switch-slider"></span>
+                        </label>
+                        <span class="switch-label">🔐 OCSP проверка сертификатов</span>
+                        <span class="switch-badge">+14%</span>
+                    </div>
+                    
+                    <!-- MAC-спуфинг - только для MAB -->
+                    <div class="switch-item" id="spoofingOption" style="display: none;">
+                        <label class="switch">
+                            <input type="checkbox" id="hybridSpoofingEnabled" onchange="updateSpoofingDependency()">
+                            <span class="switch-slider"></span>
+                        </label>
+                        <span class="switch-label">🛡️ MAC-спуфинг защита</span>
+                        <span class="switch-badge">+27%</span>
+                    </div>
+                </div>
+                
+                <div id="spoofingWarning" style="display: none; margin-top: 20px; padding: 16px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 0; color: #856404;">
+                    <strong>⚠️ Внимание:</strong> MAC-спуфинг защита требует включенного RADIUS Accounting.
+                </div>
+            </div>
+            
+            <!-- Расширенные настройки -->
+            <div style="padding: 0 40px; border-top: 1px solid var(--border);">
+                <div class="advanced-section">
+                    <div class="advanced-header" onclick="toggleAdvanced()" style="cursor: pointer; padding: 20px 0; display: flex; align-items: center; gap: 10px; user-select: none;">
+                        <span class="expand-icon" style="transition: transform 0.3s; font-size: 14px;">▶</span>
+                        <span style="color: var(--primary); font-weight: 600;">📊 Расширенные настройки</span>
+                    </div>
+                    <div class="advanced-content" id="advancedContent" style="display: none; padding-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                            <div class="form-field">
+                                <label class="form-label">
+                                    Одновременные подключения (%)
+                                    <span style="color: #999; font-size: 12px; margin-left: 5px;" title="Процент устройств, подключающихся одновременно">ⓘ</span>
+                                </label>
+                                <input type="number" class="form-input" id="hybridConcurrent" min="5" max="100" value="30" step="5">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label class="form-label">
+                                    Окно всплеска (сек)
+                                    <span style="color: #999; font-size: 12px; margin-left: 5px;" title="Временное окно для расчета пиковой нагрузки">ⓘ</span>
+                                </label>
+                                <input type="number" class="form-input" id="hybridBurstWindow" min="10" max="300" value="60" step="10">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label class="form-label">
+                                    Запас производительности (%)
+                                    <span style="color: #999; font-size: 12px; margin-left: 5px;" title="Дополнительный запас для обеспечения стабильности">ⓘ</span>
+                                </label>
+                                <input type="number" class="form-input" id="hybridHeadroom" min="0" max="100" value="25" step="5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="calculate-section">
+                <button class="calculate-btn" onclick="performHybridCalculation(); document.getElementById('resultsSection').style.display='block';">🚀 Рассчитать конфигурацию</button>
+            </div>
+        </div>
+        
+        <div class="results-section" style="display: none;" id="resultsSection">
+            <div class="results-header">
+                <h2>
+                    <span style="display: inline-block; width: 10px; height: 10px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                    Результаты расчета
+                </h2>
+                <p style="color: var(--gray);">Оптимальные параметры для вашей инфраструктуры</p>
+            </div>
+            
+            <!-- Две таблицы рядом -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Бизнес-показатели -->
+                <div class="result-card">
+                    <h3>💼 Бизнес-показатели</h3>
+                    <div class="result-row">
+                        <span class="result-label">Количество серверов</span>
+                        <span class="result-value">2 шт (комплекс + СУБД)</span>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--light);">
+                        <div style="font-weight: 600; margin-bottom: 10px; color: var(--dark);">Сервер комплекса:</div>
+                        <div class="result-row">
+                            <span class="result-label">Процессор</span>
+                            <span class="result-value"><span id="hybridServerCpu">-</span> vCPU</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Память</span>
+                            <span class="result-value"><span id="hybridServerMemory">-</span> ГБ</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Диск</span>
+                            <span class="result-value"><span id="hybridServerStorage">120</span> ГБ SSD</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--light);">
+                        <div style="font-weight: 600; margin-bottom: 10px; color: var(--dark);">Сервер СУБД:</div>
+                        <div class="result-row">
+                            <span class="result-label">Процессор</span>
+                            <span class="result-value"><span id="hybridDbCpu">4</span> vCPU</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Память</span>
+                            <span class="result-value"><span id="hybridDbMemory">16</span> ГБ</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Диск</span>
+                            <span class="result-value"><span id="hybridDbStorage">500</span> ГБ SSD</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Технические показатели -->
+                <div class="result-card">
+                    <h3>⚙️ Технические показатели</h3>
+                    <div class="result-row">
+                        <span class="result-label">Количество узлов</span>
+                        <span class="result-value"><span id="hybridResultNodes">-</span> шт</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">CPU на узел</span>
+                        <span class="result-value"><span id="hybridNodeCpu">-</span> vCPU</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Память на узел</span>
+                        <span class="result-value"><span id="hybridNodeMemory">-</span> GiB</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Количество подов</span>
+                        <span class="result-value" id="hybridPods">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">CPU лимит на под</span>
+                        <span class="result-value"><span id="hybridPodCpuLimit">-</span> mCPU</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Память лимит на под</span>
+                        <span class="result-value"><span id="hybridPodMemLimit">-</span> MiB</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Целевой RPS</span>
+                        <span class="result-value"><span id="hybridTargetRps">-</span> req/s</span>
+                    </div>
+                    <!-- Скрытые элементы для совместимости с hybrid.js -->
+                    <div style="display: none;">
+                        <span id="hybridRpsPerPod">-</span>
+                        <span id="hybridDbLoad">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Примечание -->
+            <div style="background: rgba(2, 167, 182, 0.08); padding: 15px; border-radius: 0; margin-top: 20px; margin-bottom: 20px; font-size: 14px; line-height: 1.5; border: 1px solid rgba(2, 167, 182, 0.15);">
+                <strong>Примечание:</strong> В состав ПК «Efros DO» входит встроенная СУБД «PostgreSQL», которую допускается использовать при пилотной эксплуатации комплекса. При больших нагрузках работоспособность комплекса не гарантирована. Для штатной эксплуатации требуется внешняя СУБД.
+            </div>
+            
+            <!-- Кнопки экспорта -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="export-btn" onclick="exportToPDF()" style="flex: 1; min-width: 150px; padding: 12px 20px; background: white; border: 1px solid var(--border); border-radius: 0; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500;">
+                    <span>📄</span> Экспорт в PDF
+                </button>
+                <button class="export-btn" onclick="exportToCSV()" style="flex: 1; min-width: 150px; padding: 12px 20px; background: white; border: 1px solid var(--border); border-radius: 0; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500;">
+                    <span>📅</span> Экспорт в CSV
+                </button>
+                <button class="export-btn" onclick="copyToClipboard()" style="flex: 1; min-width: 150px; padding: 12px 20px; background: white; border: 1px solid var(--border); border-radius: 0; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500;">
+                    <span>📋</span> Копировать результаты
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript libraries and modules -->
+    <script src="js/coefficients.js"></script>
+    <script src="js/calculator.js"></script>
+    <script src="js/hybrid.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    
+    <script>
+        // Обновление зависимостей accounting/spoofing для интеграции с hybrid.js
+        function updateAccountingDependency() {
+            const accountingEnabled = document.getElementById('hybridAccountingEnabled').checked;
+            const spoofingCheckbox = document.getElementById('hybridSpoofingEnabled');
+            const spoofingWarning = document.getElementById('spoofingWarning');
+            
+            // Если accounting отключен, отключаем MAC-споofing и показываем предупреждение
+            if (!accountingEnabled && spoofingCheckbox.checked) {
+                spoofingCheckbox.checked = false;
+                spoofingWarning.style.display = 'block';
+                setTimeout(() => {
+                    spoofingWarning.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Вызываем hybrid.js функцию для перерасчета
+            if (window.performHybridCalculation) {
+                performHybridCalculation();
+            }
+        }
+        
+        function updateSpoofingDependency() {
+            const spoofingEnabled = document.getElementById('hybridSpoofingEnabled').checked;
+            const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
+            const spoofingWarning = document.getElementById('spoofingWarning');
+            
+            // Если включаем MAC-spoofing, но accounting выключен - включаем accounting
+            if (spoofingEnabled && !accountingCheckbox.checked) {
+                accountingCheckbox.checked = true;
+                spoofingWarning.style.display = 'block';
+                spoofingWarning.innerHTML = '<strong>ℹ️ Информация:</strong> RADIUS Accounting автоматически включен, так как требуется для MAC-спуфинг защиты.';
+                setTimeout(() => {
+                    spoofingWarning.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Вызываем hybrid.js функцию для перерасчета
+            if (window.performHybridCalculation) {
+                performHybridCalculation();
+            }
+        }
+        
+        // Функция preset из index.html
+        function applyPreset(presetType) {
+            const deviceInput = document.getElementById('hybridDevices');
+            
+            // Убираем активный класс со всех preset cards
+            document.querySelectorAll('.preset-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Добавляем активный класс к выбранной карточке
+            event.target.closest('.preset-card').classList.add('active');
+            
+            // Устанавливаем значения в зависимости от типа
+            switch(presetType) {
+                case 'small':
+                    deviceInput.value = 1500;
+                    break;
+                case 'medium':
+                    deviceInput.value = 8000;
+                    break;
+                case 'enterprise':
+                    deviceInput.value = 15000;
+                    break;
+            }
+            
+            // Вызываем перерасчет
+            if (window.performHybridCalculation) {
+                performHybridCalculation();
+            }
+        }
+        
+        // Функция для сворачивания/разворачивания расширенных настроек
+        function toggleAdvanced() {
+            const content = document.getElementById('advancedContent');
+            const icon = document.querySelector('.expand-icon');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(90deg)';
+            } else {
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+        
+        // Функция для выбора модуля
+        function selectModule(moduleId) {
+            if (moduleId === 'nac') {
+                // Плавная прокрутка к секции калькулятора
+                document.getElementById('calculator-section').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            } else {
+                // Для других модулей показываем сообщение о разработке
+                alert('Модуль находится в разработке');
+            }
+        }
+    </script>
+</body>
+</html>
