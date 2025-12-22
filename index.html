@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мокап 4 - Табы для группировки</title>
+    <title>Калькулятор Efros NAC - Расчет инфраструктуры</title>
     <style>
         :root {
             --primary: #02A7B6;
@@ -823,17 +823,22 @@
     <script>
         // Обновление зависимостей accounting/spoofing для интеграции с hybrid.js
         function updateAccountingDependency() {
-            const accountingEnabled = document.getElementById('hybridAccountingEnabled').checked;
+            const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
+            if (!accountingCheckbox) return;
+            
+            const accountingEnabled = accountingCheckbox.checked;
             const spoofingCheckbox = document.getElementById('hybridSpoofingEnabled');
             const spoofingWarning = document.getElementById('spoofingWarning');
             
             // Если accounting отключен, отключаем MAC-споofing и показываем предупреждение
-            if (!accountingEnabled && spoofingCheckbox.checked) {
+            if (!accountingEnabled && spoofingCheckbox && spoofingCheckbox.checked) {
                 spoofingCheckbox.checked = false;
-                spoofingWarning.style.display = 'block';
-                setTimeout(() => {
-                    spoofingWarning.style.display = 'none';
-                }, 3000);
+                if (spoofingWarning) {
+                    spoofingWarning.style.display = 'block';
+                    setTimeout(() => {
+                        spoofingWarning.style.display = 'none';
+                    }, 3000);
+                }
             }
             
             // Вызываем hybrid.js функцию для перерасчета
@@ -843,18 +848,23 @@
         }
         
         function updateSpoofingDependency() {
-            const spoofingEnabled = document.getElementById('hybridSpoofingEnabled').checked;
+            const spoofingCheckbox = document.getElementById('hybridSpoofingEnabled');
+            if (!spoofingCheckbox) return;
+            
+            const spoofingEnabled = spoofingCheckbox.checked;
             const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
             const spoofingWarning = document.getElementById('spoofingWarning');
             
             // Если включаем MAC-spoofing, но accounting выключен - включаем accounting
-            if (spoofingEnabled && !accountingCheckbox.checked) {
+            if (spoofingEnabled && accountingCheckbox && !accountingCheckbox.checked) {
                 accountingCheckbox.checked = true;
-                spoofingWarning.style.display = 'block';
-                spoofingWarning.innerHTML = '<strong>ℹ️ Информация:</strong> RADIUS Accounting автоматически включен, так как требуется для MAC-спуфинг защиты.';
-                setTimeout(() => {
-                    spoofingWarning.style.display = 'none';
-                }, 3000);
+                if (spoofingWarning) {
+                    spoofingWarning.style.display = 'block';
+                    spoofingWarning.innerHTML = '<strong>ℹ️ Информация:</strong> RADIUS Accounting автоматически включен, так как требуется для MAC-спуфинг защиты.';
+                    setTimeout(() => {
+                        spoofingWarning.style.display = 'none';
+                    }, 3000);
+                }
             }
             
             // Вызываем hybrid.js функцию для перерасчета

@@ -38,11 +38,16 @@ function setupScenarioCards() {
             
             // Показываем/скрываем OCSP
             const ocspOption = document.getElementById('ocspOption');
-            if (hybridSelectedMethod === 'EAP-TLS') {
-                ocspOption.style.display = 'flex';
-            } else {
-                ocspOption.style.display = 'none';
-                document.getElementById('hybridOcspEnabled').checked = false;
+            if (ocspOption) {
+                if (hybridSelectedMethod === 'EAP-TLS') {
+                    ocspOption.style.display = 'flex';
+                } else {
+                    ocspOption.style.display = 'none';
+                    const ocspCheckbox = document.getElementById('hybridOcspEnabled');
+                    if (ocspCheckbox) {
+                        ocspCheckbox.checked = false;
+                    }
+                }
             }
             
             // Устанавливаем значения по умолчанию для Accounting
@@ -50,13 +55,15 @@ function setupScenarioCards() {
             const spoofingOption = document.getElementById('spoofingOption');
             const spoofingCheckbox = document.getElementById('hybridSpoofingEnabled');
             
-            if (hybridSelectedMethod === 'MAB') {
-                accountingCheckbox.checked = true; // для MAB включен по умолчанию
-                spoofingOption.style.display = 'flex'; // показываем опцию MAC-спуфинга
-            } else {
-                accountingCheckbox.checked = false; // для PEAP и EAP-TLS выключен по умолчанию
-                spoofingOption.style.display = 'none'; // скрываем опцию MAC-спуфинга
-                spoofingCheckbox.checked = false; // сбрасываем чекбокс
+            if (spoofingOption) {
+                if (hybridSelectedMethod === 'MAB') {
+                    if (accountingCheckbox) accountingCheckbox.checked = true; // для MAB включен по умолчанию
+                    spoofingOption.style.display = 'flex'; // показываем опцию MAC-спуфинга
+                } else {
+                    if (accountingCheckbox) accountingCheckbox.checked = false; // для PEAP и EAP-TLS выключен по умолчанию
+                    spoofingOption.style.display = 'none'; // скрываем опцию MAC-спуфинга
+                    if (spoofingCheckbox) spoofingCheckbox.checked = false; // сбрасываем чекбокс
+                }
             }
             
             // Обновляем превью и пересчитываем
@@ -186,16 +193,20 @@ function applyPreset(type) {
     const ocspOption = document.getElementById('ocspOption');
     const spoofingOption = document.getElementById('spoofingOption');
     
-    if (hybridSelectedMethod === 'EAP-TLS') {
-        ocspOption.style.display = 'flex';
-    } else {
-        ocspOption.style.display = 'none';
+    if (ocspOption) {
+        if (hybridSelectedMethod === 'EAP-TLS') {
+            ocspOption.style.display = 'flex';
+        } else {
+            ocspOption.style.display = 'none';
+        }
     }
     
-    if (hybridSelectedMethod === 'MAB') {
-        spoofingOption.style.display = 'flex';
-    } else {
-        spoofingOption.style.display = 'none';
+    if (spoofingOption) {
+        if (hybridSelectedMethod === 'MAB') {
+            spoofingOption.style.display = 'flex';
+        } else {
+            spoofingOption.style.display = 'none';
+        }
     }
     
     // Устанавливаем значения по умолчанию для Accounting

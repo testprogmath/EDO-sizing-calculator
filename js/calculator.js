@@ -328,6 +328,28 @@ function exportToCSV() {
     document.body.removeChild(link);
 }
 
+// Фоллбэк функция для копирования в буфер обмена
+function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "-999999px";
+    textArea.style.left = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        const msg = successful ? 'Результаты скопированы в буфер обмена' : 'Не удалось скопировать результаты';
+        alert(msg);
+    } catch (err) {
+        alert('Ошибка при копировании: ' + err);
+    }
+    
+    document.body.removeChild(textArea);
+}
+
 function copyToClipboard() {
     if (!window.lastCalculationResults) {
         alert('Сначала выполните расчет');
@@ -365,11 +387,18 @@ function copyToClipboard() {
     text += '• CPU лимит на под: ' + results.podCpuLimit + ' mCPU\n';
     text += '• Память лимит на под: ' + results.podMemLimit + ' MiB\n';
     
-    navigator.clipboard.writeText(text).then(() => {
-        alert('Результаты скопированы в буфер обмена');
-    }).catch(err => {
-        alert('Ошибка при копировании: ' + err);
-    });
+    // Проверяем доступность API clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Результаты скопированы в буфер обмена');
+        }).catch(err => {
+            // Фоллбэк для случаев без HTTPS
+            fallbackCopyToClipboard(text);
+        });
+    } else {
+        // Используем фоллбэк для старых браузеров или не-HTTPS
+        fallbackCopyToClipboard(text);
+    }
 }
 
 function calculateDatabaseRequirements(inputs, targetRps) {
