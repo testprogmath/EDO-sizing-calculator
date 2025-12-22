@@ -467,7 +467,24 @@ function exportToPDF() {
             {
                 text: `Метод аутентификации: ${authMethodRu[inputs.authMethod] || inputs.authMethod}`,
                 style: 'normal',
-                margin: [0, 0, 0, 20]
+                margin: [0, 0, 0, 5]
+            },
+            
+            // Дополнительные опции
+            {
+                text: 'Дополнительные опции:',
+                style: 'normal',
+                margin: [0, 0, 0, 5]
+            },
+            {
+                ul: [
+                    inputs.gatewayEnabled ? '✅ API Gateway включен' : '❌ API Gateway отключен',
+                    inputs.accountingEnabled ? '✅ RADIUS Accounting включен' : '❌ RADIUS Accounting отключен',
+                    ...(inputs.authMethod === 'EAP-TLS' ? [inputs.ocspEnabled ? '✅ OCSP проверка сертификатов включена' : '❌ OCSP проверка сертификатов отключена'] : []),
+                    ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ MAC-спуфинг защита включена' : '❌ MAC-спуфинг защита отключена'] : [])
+                ],
+                style: 'normal',
+                margin: [20, 0, 0, 20]
             },
 
             // Таблица программного обеспечения
@@ -484,6 +501,10 @@ function exportToPDF() {
                         [{text: 'Компонент', style: 'tableHeaderCell'}, {text: 'Характеристики', style: 'tableHeaderCell'}],
                         ['Количество устройств', deviceCount],
                         ['Метод аутентификации', authMethodRu[inputs.authMethod] || inputs.authMethod],
+                        ['API Gateway', inputs.gatewayEnabled ? 'Включен' : 'Отключен'],
+                        ['RADIUS Accounting', inputs.accountingEnabled ? 'Включен' : 'Отключен'],
+                        ...(inputs.authMethod === 'EAP-TLS' ? [['OCSP проверка сертификатов', inputs.ocspEnabled ? 'Включена' : 'Отключена']] : []),
+                        ...(inputs.authMethod === 'MAB' ? [['MAC-спуфинг защита', inputs.spoofingEnabled ? 'Включена' : 'Отключена']] : []),
                         [{text: '', colSpan: 2}, ''],
                         [{text: 'Операционная система', style: 'bold'}, 'Astra Linux Special Edition, РЕД ОС (сертифицированные)'],
                         [{text: 'База данных', style: 'bold'}, 'PostgreSQL 14+, Jatoba (сертифицированные СУБД)'],

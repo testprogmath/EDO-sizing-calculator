@@ -271,9 +271,26 @@ function exportToCSV() {
     
     const results = window.lastCalculationResults;
     
+    // Получаем входные параметры для добавления дополнительных опций
+    const inputs = getHybridInputValues ? getHybridInputValues() : {};
+    
     // Формируем CSV контент
     let csv = 'Параметр,Значение\n';
     csv += 'Профиль конфигурации,' + results.profileName + '\n';
+    
+    // Дополнительные опции конфигурации
+    if (inputs.authMethod) {
+        csv += '\nКонфигурация\n';
+        csv += 'Метод аутентификации,' + inputs.authMethod + '\n';
+        csv += 'API Gateway,' + (inputs.gatewayEnabled ? 'Включен' : 'Отключен') + '\n';
+        csv += 'RADIUS Accounting,' + (inputs.accountingEnabled ? 'Включен' : 'Отключен') + '\n';
+        if (inputs.authMethod === 'EAP-TLS') {
+            csv += 'OCSP проверка сертификатов,' + (inputs.ocspEnabled ? 'Включена' : 'Отключена') + '\n';
+        }
+        if (inputs.authMethod === 'MAB') {
+            csv += 'MAC-спуфинг защита,' + (inputs.spoofingEnabled ? 'Включена' : 'Отключена') + '\n';
+        }
+    }
     csv += '\nБизнес-показатели\n';
     csv += 'Минимальное количество подов,' + results.minPods + '\n';
     csv += 'Рекомендуемое количество подов,' + results.recommendedPods + '\n';
