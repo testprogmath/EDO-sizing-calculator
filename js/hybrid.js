@@ -506,8 +506,8 @@ function exportToPDF() {
                         [{text: '', colSpan: 2}, ''],
                         [{text: 'Операционная система', style: 'bold'}, 'Astra Linux Special Edition, РЕД ОС (сертифицированные)'],
                         [{text: 'База данных', style: 'bold'}, 'PostgreSQL 14+, Jatoba (сертифицированные СУБД)'],
-                        [{text: 'Контейнеризация', style: 'bold'}, 'Docker v25.0.5+, Docker-compose v2.4.0'],
-                        [{text: 'Дополнительные сервисы', style: 'bold'}, 'Kafka, OpenSearch, MinIO, Nginx']
+                        [{text: 'Платформа контейнеризации', style: 'bold'}, 'Kubernetes v1.29.6'],
+                        [{text: 'Дополнительные сервисы', style: 'bold'}, 'Strimzi Kafka v3.7.0, OpenSearch v2.18.0, MinIO v220218, NGINX Ingress Controller v1.25, External DNS v1.15.2']
                     ]
                 },
                 layout: 'lightHorizontalLines',
