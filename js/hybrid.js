@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
         spoofingOption.style.display = 'flex';
     }
     
+    // Проверяем видимость дополнительных опций при загрузке
+    updateAdditionalOptionsVisibility();
+    
     // Инициализируем превью и выполняем начальный расчет
     updatePreview();
     performHybridCalculation(); // Начальный расчет с MAB
@@ -65,6 +68,9 @@ function setupScenarioCards() {
                     if (spoofingCheckbox) spoofingCheckbox.checked = false; // сбрасываем чекбокс
                 }
             }
+            
+            // Проверяем и обновляем видимость секции дополнительных опций
+            updateAdditionalOptionsVisibility();
             
             // Обновляем превью и пересчитываем
             updatePreview();
@@ -202,6 +208,9 @@ function applyPreset(type) {
         accountingCheckbox.checked = true; // всегда включен по умолчанию для всех методов
     }
     
+    // Проверяем видимость дополнительных опций после применения пресета
+    updateAdditionalOptionsVisibility();
+    
     updatePreview();
     performHybridCalculation(); // Пересчитываем после применения пресета
 }
@@ -229,6 +238,32 @@ function toggleNacDetails() {
     } else {
         content.classList.add('expanded');
         icon.textContent = '▼';
+    }
+}
+
+function updateAdditionalOptionsVisibility() {
+    const additionalOptionsSection = document.querySelector('.additional-options');
+    const ocspOption = document.getElementById('ocspOption');
+    const spoofingOption = document.getElementById('spoofingOption');
+    
+    if (!additionalOptionsSection) return;
+    
+    // Проверяем, есть ли видимые опции
+    let hasVisibleOptions = false;
+    
+    if (ocspOption && ocspOption.style.display === 'flex') {
+        hasVisibleOptions = true;
+    }
+    
+    if (spoofingOption && spoofingOption.style.display === 'flex') {
+        hasVisibleOptions = true;
+    }
+    
+    // Показываем/скрываем всю секцию в зависимости от наличия опций
+    if (hasVisibleOptions) {
+        additionalOptionsSection.style.display = 'block';
+    } else {
+        additionalOptionsSection.style.display = 'none';
     }
 }
 
