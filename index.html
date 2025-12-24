@@ -140,11 +140,17 @@
                     
                     <div class="form-grid">
                         <div class="form-field">
-                            <label class="form-label">Количество устройств</label>
+                            <label class="form-label">
+                                Количество устройств
+                                <span class="form-label-info" title="Общее количество устройств, которые будут аутентифицироваться в системе">ⓘ</span>
+                            </label>
                             <input type="number" class="form-input" id="hybridDevices" value="8000" min="1000" max="20000" step="100">
                         </div>
                         <div class="form-field">
-                            <label class="form-label">Количество узлов в кластере</label>
+                            <label class="form-label">
+                                Количество узлов в кластере
+                                <span class="form-label-info" title="Количество серверов в кластере Kubernetes для обеспечения отказоустойчивости">ⓘ</span>
+                            </label>
                             <select class="form-select" id="hybridNodeCount">
                                 <option value="1">1 узел (разработка/тестирование)</option>
                                 <option value="3" selected>3 узла (базовая конфигурация)</option>
@@ -163,15 +169,8 @@
                 
                 
                 <div class="switches-grid">
-                    <!-- RADIUS Accounting -->
-                    <div class="switch-item">
-                        <label class="switch">
-                            <input type="checkbox" checked id="hybridAccountingEnabled" onchange="updateAccountingDependency()">
-                            <span class="switch-slider"></span>
-                        </label>
-                        <span class="switch-label">📊 RADIUS Accounting</span>
-                        <span class="switch-badge">+23%</span>
-                    </div>
+                    <!-- RADIUS Accounting - скрыто, но всегда включено -->
+                    <input type="checkbox" checked id="hybridAccountingEnabled" style="display: none;" onchange="updateAccountingDependency()">
                     
                     <!-- OCSP - только для EAP-TLS -->
                     <div class="switch-item" id="ocspOption" style="display: none;">
@@ -179,8 +178,10 @@
                             <input type="checkbox" id="hybridOcspEnabled">
                             <span class="switch-slider"></span>
                         </label>
-                        <span class="switch-label">🔐 OCSP проверка сертификатов</span>
-                        <span class="switch-badge">+14%</span>
+                        <span class="switch-label">
+                            🔐 OCSP проверка сертификатов
+                            <span class="form-label-info" title="Онлайн проверка статуса сертификатов для повышения безопасности">ⓘ</span>
+                        </span>
                     </div>
                     
                     <!-- MAC-спуфинг - только для MAB -->
@@ -189,8 +190,10 @@
                             <input type="checkbox" id="hybridSpoofingEnabled" onchange="updateSpoofingDependency()">
                             <span class="switch-slider"></span>
                         </label>
-                        <span class="switch-label">🛡️ MAC-спуфинг защита</span>
-                        <span class="switch-badge">+27%</span>
+                        <span class="switch-label">
+                            🛡️ MAC-спуфинг защита
+                            <span class="form-label-info" title="Дополнительные проверки на подмену атрибутов для выявления попыток подмены MAC-адресов устройств">ⓘ</span>
+                        </span>
                     </div>
                 </div>
                 
@@ -210,7 +213,7 @@
                         <div class="form-field">
                             <label class="form-label">
                                 Одновременные подключения (%)
-                                <span class="form-label-info" title="Процент устройств, подключающихся одновременно">ⓘ</span>
+                                <span class="form-label-info" title="Процент устройств, которые будут одновременно проходить аутентификацию в пиковое время">ⓘ</span>
                             </label>
                             <input type="number" class="form-input" id="hybridConcurrent" min="5" max="100" value="30" step="5">
                         </div>
@@ -218,7 +221,7 @@
                         <div class="form-field">
                             <label class="form-label">
                                 Окно всплеска (сек)
-                                <span class="form-label-info" title="Временное окно для расчета пиковой нагрузки">ⓘ</span>
+                                <span class="form-label-info" title="Временной интервал, в течение которого происходит массовая аутентификация устройств">ⓘ</span>
                             </label>
                             <input type="number" class="form-input" id="hybridBurstWindow" min="10" max="300" value="60" step="10">
                         </div>
@@ -226,7 +229,7 @@
                         <div class="form-field">
                             <label class="form-label">
                                 Запас производительности (%)
-                                <span class="form-label-info" title="Дополнительный запас для обеспечения стабильности">ⓘ</span>
+                                <span class="form-label-info" title="Дополнительный резерв производительности для обеспечения стабильной работы системы под нагрузкой">ⓘ</span>
                             </label>
                             <input type="number" class="form-input" id="hybridHeadroom" min="0" max="100" value="25" step="5">
                         </div>

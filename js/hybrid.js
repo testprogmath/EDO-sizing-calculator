@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // После setupScenarioCards() hybridSelectedMethod должен быть 'MAB'
     
-    // Устанавливаем начальные значения accounting для MAB (по умолчанию)
+    // Устанавливаем accounting включенным по умолчанию для всех методов
     const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
     if (accountingCheckbox) {
-        accountingCheckbox.checked = true; // MAB - включен по умолчанию
+        accountingCheckbox.checked = true; // Всегда включен по умолчанию
     }
     
     // Показываем опцию MAC-спуфинга для MAB (который выбран по умолчанию)
@@ -57,10 +57,10 @@ function setupScenarioCards() {
             
             if (spoofingOption) {
                 if (hybridSelectedMethod === 'MAB') {
-                    if (accountingCheckbox) accountingCheckbox.checked = true; // для MAB включен по умолчанию
+                    if (accountingCheckbox) accountingCheckbox.checked = true; // всегда включен
                     spoofingOption.style.display = 'flex'; // показываем опцию MAC-спуфинга
                 } else {
-                    if (accountingCheckbox) accountingCheckbox.checked = false; // для PEAP и EAP-TLS выключен по умолчанию
+                    if (accountingCheckbox) accountingCheckbox.checked = true; // всегда включен для всех методов
                     spoofingOption.style.display = 'none'; // скрываем опцию MAC-спуфинга
                     if (spoofingCheckbox) spoofingCheckbox.checked = false; // сбрасываем чекбокс
                 }
@@ -198,10 +198,8 @@ function applyPreset(type) {
     
     // Устанавливаем значения по умолчанию для Accounting
     const accountingCheckbox = document.getElementById('hybridAccountingEnabled');
-    if (hybridSelectedMethod === 'MAB') {
-        accountingCheckbox.checked = true; // для MAB включен по умолчанию
-    } else {
-        accountingCheckbox.checked = false; // для PEAP и EAP-TLS выключен по умолчанию
+    if (accountingCheckbox) {
+        accountingCheckbox.checked = true; // всегда включен по умолчанию для всех методов
     }
     
     updatePreview();
@@ -477,7 +475,6 @@ function exportToPDF() {
             {
                 ul: [
                     '✅ API Gateway включен (10% накладные расходы)',
-                    inputs.accountingEnabled ? '✅ RADIUS Accounting включен' : '❌ RADIUS Accounting отключен',
                     ...(inputs.authMethod === 'EAP-TLS' ? [inputs.ocspEnabled ? '✅ OCSP проверка сертификатов включена' : '❌ OCSP проверка сертификатов отключена'] : []),
                     ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ MAC-спуфинг защита включена' : '❌ MAC-спуфинг защита отключена'] : [])
                 ],
@@ -500,7 +497,6 @@ function exportToPDF() {
                         ['Количество устройств', deviceCount],
                         ['Метод аутентификации', authMethodRu[inputs.authMethod] || inputs.authMethod],
                         ['API Gateway', 'Включен (10% накладные расходы)'],
-                        ['RADIUS Accounting', inputs.accountingEnabled ? 'Включен' : 'Отключен'],
                         ...(inputs.authMethod === 'EAP-TLS' ? [['OCSP проверка сертификатов', inputs.ocspEnabled ? 'Включена' : 'Отключена']] : []),
                         ...(inputs.authMethod === 'MAB' ? [['MAC-спуфинг защита', inputs.spoofingEnabled ? 'Включена' : 'Отключена']] : []),
                         [{text: '', colSpan: 2}, ''],

@@ -127,7 +127,6 @@ function copyToClipboard() {
     text += '• Количество устройств: ' + (inputs.devices || 'N/A') + '\n';
     text += '• Метод аутентификации: ' + (inputs.authMethod || 'N/A') + '\n';
     text += '• API Gateway: Включен (10% накладные расходы)\n';
-    text += '• RADIUS Accounting: ' + (inputs.accountingEnabled ? 'Включен' : 'Отключен') + '\n';
     
     if (inputs.authMethod === 'EAP-TLS' && inputs.ocspEnabled !== undefined) {
         text += '• OCSP проверка: ' + (inputs.ocspEnabled ? 'Включена' : 'Отключена') + '\n';
