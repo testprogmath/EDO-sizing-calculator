@@ -492,9 +492,6 @@ function displayHybridResults(results, ciData = null) {
     // Отображение результатов CI калькулятора
     const ciInfoSection = document.getElementById('ciInfoSection');
     if (ciData && ciInfoSection) {
-        // Показываем CI данные и делаем CI таб видимым
-        ciInfoSection.style.display = 'block';
-        
         // Обновляем значения в CI результатах с правильными IDs
         const ciDevicesTotal = document.getElementById('ciDevicesTotal');
         const ciCpuLoad = document.getElementById('ciCpuLoad');
@@ -510,9 +507,6 @@ function displayHybridResults(results, ciData = null) {
         if (ciReportSecondary) ciReportSecondary.textContent = (ciData.reportTimeSecondary || 0).toFixed(2);
         
         console.log('📊 CI Results displayed:', ciData);
-    } else if (ciInfoSection) {
-        // Скрываем CI секцию если нет данных
-        ciInfoSection.style.display = 'none';
     }
     
     // Выводим детализацию модуля NAC в консоль для разработчиков

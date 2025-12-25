@@ -198,6 +198,10 @@ function copyToClipboard() {
     const results = window.lastCalculationResults;
     const inputs = getHybridInputValues ? getHybridInputValues() : {};
     
+    // Получаем данные CI если модуль активен
+    const isCIEnabled = window.isCISelected && window.isCISelected();
+    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
+    
     let text = 'Результаты расчета калькулятора Efros NAC\n';
     text += '==========================================\n\n';
     text += 'Конфигурация:\n';
@@ -210,6 +214,9 @@ function copyToClipboard() {
     }
     if (inputs.authMethod === 'MAB' && inputs.spoofingEnabled !== undefined) {
         text += '• MAC-спуфинг защита: ' + (inputs.spoofingEnabled ? 'Включена' : 'Отключена') + '\n';
+    }
+    if (isCIEnabled) {
+        text += '• Config Inspector (CI): Включен - мониторинг конфигураций устройств\n';
     }
     
     text += '\nБИЗНЕС-ПОКАЗАТЕЛИ:\n';
@@ -232,6 +239,16 @@ function copyToClipboard() {
         text += '• CPU БД: ' + results.dbRequirements.cpu + ' vCPU\n';
         text += '• Память БД: ' + results.dbRequirements.memory + ' ГБ\n';
         text += '• Хранилище БД: ' + results.dbRequirements.storage + ' ГБ\n';
+    }
+    
+    // Добавляем информацию о CI если модуль включен
+    if (isCIEnabled && ciData) {
+        text += '\nCONFIG INSPECTOR (CI):\n';
+        text += '• Устройств под управлением: ' + (ciData.totalDevices || 0) + ' шт\n';
+        text += '• Потребление CPU: ' + (ciData.cpuUsageMax || 0).toFixed(1) + ' vCPU на кластер\n';
+        text += '• Потребление памяти: ' + (ciData.memoryUsageMax || 0).toFixed(1) + ' ГБ на кластер\n';
+        text += '• Время выполнения отчетов (первичных): ' + (ciData.reportTimePrimary || 0).toFixed(2) + ' ч\n';
+        text += '• Время выполнения отчетов (вторичных): ' + (ciData.reportTimeSecondary || 0).toFixed(2) + ' ч\n';
     }
     
     // Используем современный API или фоллбэк

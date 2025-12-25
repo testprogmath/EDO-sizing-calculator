@@ -307,6 +307,10 @@ function exportToCSV() {
     // Получаем входные параметры для добавления дополнительных опций
     const inputs = getHybridInputValues ? getHybridInputValues() : {};
     
+    // Получаем данные CI если модуль активен
+    const isCIEnabled = window.isCISelected && window.isCISelected();
+    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
+    
     // Формируем CSV контент
     let csv = 'Параметр,Значение\n';
     csv += 'Профиль конфигурации,' + results.profileName + '\n';
@@ -321,6 +325,9 @@ function exportToCSV() {
         }
         if (inputs.authMethod === 'MAB') {
             csv += 'MAC-спуфинг защита,' + (inputs.spoofingEnabled ? 'Включена' : 'Отключена') + '\n';
+        }
+        if (isCIEnabled) {
+            csv += 'Config Inspector (CI),Включен - мониторинг конфигураций устройств\n';
         }
     }
     csv += '\nБизнес-показатели\n';
@@ -347,6 +354,16 @@ function exportToCSV() {
         csv += 'Память БД (ГБ),' + results.dbRequirements.memory + '\n';
         csv += 'Хранилище БД (ГБ),' + results.dbRequirements.storage + '\n';
         csv += 'Kubernetes ноды БД,Внешний сервис\n';
+    }
+    
+    // Добавляем информацию о CI если модуль включен
+    if (isCIEnabled && ciData) {
+        csv += '\nConfig Inspector (CI)\n';
+        csv += 'Устройств под управлением,' + (ciData.totalDevices || 0) + ' шт\n';
+        csv += 'Потребление CPU,' + (ciData.cpuUsageMax || 0).toFixed(1) + ' vCPU на кластер\n';
+        csv += 'Потребление памяти,' + (ciData.memoryUsageMax || 0).toFixed(1) + ' ГБ на кластер\n';
+        csv += 'Время выполнения отчетов (первичных),' + (ciData.reportTimePrimary || 0).toFixed(2) + ' ч\n';
+        csv += 'Время выполнения отчетов (вторичных),' + (ciData.reportTimeSecondary || 0).toFixed(2) + ' ч\n';
     }
     
     // Создаем blob и скачиваем
