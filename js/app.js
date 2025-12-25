@@ -99,15 +99,87 @@ function toggleAdvanced() {
 
 // Функция для выбора модуля
 function selectModule(moduleId) {
-    if (moduleId === 'nac') {
-        // Плавная прокрутка к секции калькулятора
+    const moduleCard = document.getElementById(`${moduleId}-module`);
+    const moduleButton = document.getElementById(`${moduleId}-module-button`);
+    
+    // Переключаем выбранное состояние модуля
+    if (moduleCard.classList.contains('selected')) {
+        // Если модуль уже выбран - отменяем выбор
+        moduleCard.classList.remove('selected');
+        updateModuleButtonState(moduleId, false);
+    } else {
+        // Выбираем модуль
+        moduleCard.classList.add('selected');
+        updateModuleButtonState(moduleId, true);
+    }
+    
+    // Обновляем видимость секций калькулятора
+    updateCalculatorSections();
+    
+    // Если хотя бы один модуль выбран, прокручиваем к секции калькулятора
+    if (isAnyModuleSelected()) {
         document.getElementById('calculator-section').scrollIntoView({ 
             behavior: 'smooth',
             block: 'start'
         });
+    }
+}
+
+// Функция для обновления состояния кнопок модулей
+function updateModuleButtonState(moduleId, isSelected) {
+    const button = document.getElementById(`${moduleId}-module-button`);
+    const features = document.querySelectorAll(`#${moduleId}-module .feature-check, #${moduleId}-module .feature-text`);
+    
+    if (isSelected) {
+        button.classList.add('module-button-active');
+        button.textContent = 'Модуль активен';
+        features.forEach(feature => {
+            if (feature.classList.contains('feature-check')) {
+                feature.classList.add('feature-check-active');
+            } else {
+                feature.classList.add('feature-text-active');
+            }
+        });
     } else {
-        // Для других модулей показываем сообщение о разработке
-        alert('Модуль находится в разработке');
+        button.classList.remove('module-button-active');
+        button.textContent = 'Настроить параметры';
+        features.forEach(feature => {
+            feature.classList.remove('feature-check-active', 'feature-text-active');
+        });
+    }
+}
+
+// Функция для проверки выбранности модулей
+function isAnyModuleSelected() {
+    return document.querySelector('.module-card.selected') !== null;
+}
+
+function isNACSelected() {
+    return document.getElementById('nac-module').classList.contains('selected');
+}
+
+function isCISelected() {
+    return document.getElementById('ci-module').classList.contains('selected');
+}
+
+// Функция для обновления видимости секций калькулятора
+function updateCalculatorSections() {
+    const ciSection = document.getElementById('ciSection');
+    
+    if (isCISelected()) {
+        ciSection.style.display = 'block';
+    } else {
+        ciSection.style.display = 'none';
+    }
+    
+    // Обновляем состояние CI таба
+    if (window.updateCITabState) {
+        window.updateCITabState();
+    }
+    
+    // Обновляем расчеты при изменении модулей
+    if (window.performHybridCalculation && isAnyModuleSelected()) {
+        performHybridCalculation();
     }
 }
 
@@ -190,3 +262,11 @@ function fallbackCopyToClipboard(text) {
     
     document.body.removeChild(textArea);
 }
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Устанавливаем начальное состояние CI таба
+    if (window.updateCITabState) {
+        window.updateCITabState();
+    }
+});

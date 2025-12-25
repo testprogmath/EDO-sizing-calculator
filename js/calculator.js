@@ -61,7 +61,7 @@ function validateInputs(inputs) {
     return true;
 }
 
-function performCalculations(inputs) {
+function performCalculations(inputs, ciData = null) {
     const coeffs = COEFFICIENTS[inputs.authMethod];
     const commonCoeffs = COEFFICIENTS.common;
     
@@ -143,14 +143,46 @@ function performCalculations(inputs) {
     const podMemRequestMiB = Math.ceil(podMemLimitMiB * commonCoeffs.requestRatio / 64) * 64;
     
     // 11. Расчет требований к нодам (CPU уже учитывает Accounting в podCpuLimitCores)
-    const rawNodeCpu = (podCpuLimitCores * finalPods / inputs.nodeCount) + coeffs.baselineNodeCpuP95;
+    // NAC потребление + базовая линия
+    const nacNodeCpu = (podCpuLimitCores * finalPods / inputs.nodeCount) + coeffs.baselineNodeCpuP95;
+    
+    // Добавляем данные CI (если доступны)
+    // CI нагрузка добавляется К КАЖДОМУ узлу (не распределяется между ними)
+    const ciCpuPerNode = ciData ? ciData.cpuUsageMax : 0;
+    const rawNodeCpu = nacNodeCpu + ciCpuPerNode;
     const nodeCpu = roundUpToCpuSize(rawNodeCpu);
     
     // Новая формула памяти согласно C38: =(C22*C27/Inputs!$C10/1024+Coefficients!$C$12)*Coefficients!$C8
     // где C22 = rpsPerPod, C27 = podMemLimit, C10 = nodeCount, C12 = baseline, C8 = nodeHeadroom  
     const baselineMemGiB = getBaselineNodeMemGiB(inputs.devices);
-    const rawCalculatedMemory = (rpsPerPod * podMemLimitMiB / inputs.nodeCount / 1024 + baselineMemGiB) * commonCoeffs.nodeHeadroom;
-    const nodeMemory = getNodeMemorySize(inputs.devices, rawCalculatedMemory, inputs.authMethod);
+    // NAC потребление + базовая линия
+    const nacCalculatedMemory = (rpsPerPod * podMemLimitMiB / inputs.nodeCount / 1024 + baselineMemGiB) * commonCoeffs.nodeHeadroom;
+    
+    // Новая логика округления памяти:
+    // 1. NAC + baseline память 
+    // 2. Округление по количеству устройств (существующая функция getNodeMemorySize)
+    // 3. Добавление CI памяти к уже округленному значению
+    // 4. Финальное округление до стандартных размеров: 24, 32, 48, 64, 96 GB
+    
+    const nacRoundedMemory = getNodeMemorySize(inputs.devices, nacCalculatedMemory, inputs.authMethod);
+    const ciMemoryPerNodeGiB = ciData ? ciData.memoryUsageMax : 0;
+    
+    if (ciData) {
+        console.log('=== MEMORY CALCULATION DEBUG ===');
+        console.log('NAC Memory (raw):', nacCalculatedMemory.toFixed(2), 'GiB');
+        console.log('NAC Memory (rounded):', nacRoundedMemory, 'GiB');
+        console.log('CI Memory per node:', ciMemoryPerNodeGiB.toFixed(2), 'GB (добавляется к каждому узлу)');
+        console.log('Node Count:', inputs.nodeCount);
+    }
+    
+    const totalMemoryWithCI = nacRoundedMemory + ciMemoryPerNodeGiB;
+    const nodeMemory = roundToStandardMemorySize(totalMemoryWithCI);
+    
+    if (ciData) {
+        console.log('Total Memory with CI:', totalMemoryWithCI.toFixed(2), 'GiB');
+        console.log('Final Memory (standard):', nodeMemory, 'GiB');
+        console.log('================================');
+    }
     
     // 12. Общие ресурсы кластера
     const totalCpu = nodeCpu * inputs.nodeCount;
@@ -194,7 +226,7 @@ function performCalculations(inputs) {
             rpsWithHeadroom: rpsWithHeadroom.toFixed(2),
             calculatedPods: calculatedPods,
             rawNodeCpu: rawNodeCpu.toFixed(2),
-            rawCalculatedMemory: rawCalculatedMemory.toFixed(2),
+            rawCalculatedMemory: totalMemoryWithCI.toFixed(2),
             baselineMemGiB: baselineMemGiB.toFixed(2)
         },
         
@@ -204,7 +236,7 @@ function performCalculations(inputs) {
             // Формула: (подов_на_ноду * память_на_под) в ГБ
             rawNacMemoryGiB: ((finalPods / inputs.nodeCount) * Math.max(1024, podMemLimitForDetailsNAC) / 1024).toFixed(2),
             baselineMemoryGiB: baselineMemGiB.toFixed(2),
-            totalCalculatedMemory: rawCalculatedMemory.toFixed(2),
+            totalCalculatedMemory: totalMemoryWithCI.toFixed(2),
             finalRoundedMemory: nodeMemory,
             
             // CPU только для модуля NAC (с учетом accounting)

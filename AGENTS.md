@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `index.html` — main app UI and layout.
 - `js/` — calculation logic (`calculator.js`), shared constants (`coefficients.js`), and UI glue (`hybrid.js`).
-- `css/` — global styles (`styles.css`) and calculator-specific styles (`calculator.css`).
+- `css/` — main styles (`main.css`).
 - `images/` — static assets.
 - `azure-pipelines.yml` — CI for static validation and artifact publishing.
 - `DEPLOYMENT.md`, `nginx.conf` — deployment instructions and server config.
@@ -17,7 +17,7 @@
 ## Coding Style & Naming Conventions
 - Indentation: 4 spaces; UTF‑8 encoding.
 - JavaScript: ES6+, camelCase for functions/vars, UPPER_SNAKE_CASE for shared constants; keep modules small and cohesive.
-- Files: lowercase, concise names (e.g., `calculator.js`, `styles.css`).
+- Files: lowercase, concise names (e.g., `calculator.js`, `main.css`).
 - CSS: classes in kebab-case; prefer variables and reuse over inline styles.
 - HTML: semantic structure; keep script/style tags external; avoid inline JS except minimal bootstrapping.
 

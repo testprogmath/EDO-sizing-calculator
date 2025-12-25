@@ -63,10 +63,7 @@
                 </div>
                 
                 <!-- Модуль CI -->
-                <div class="module-card disabled" id="ci-module">
-                    <!-- Badge "Скоро" -->
-                    <div class="module-badge">Скоро</div>
-                    
+                <div class="module-card" id="ci-module" onclick="selectModule('ci')">
                     <!-- Заголовок модуля -->
                     <div class="module-header module-header-ci">
                         <div class="module-icon module-icon-ci">⚙️</div>
@@ -79,25 +76,25 @@
                     <!-- Список функций -->
                     <div class="module-features">
                         <div class="module-feature">
-                            <span class="feature-check feature-check-disabled">✓</span>
-                            <span class="feature-text feature-text-disabled">Мониторинг конфигураций</span>
+                            <span class="feature-check">✓</span>
+                            <span class="feature-text">Мониторинг конфигураций</span>
                         </div>
                         <div class="module-feature">
-                            <span class="feature-check feature-check-disabled">✓</span>
-                            <span class="feature-text feature-text-disabled">Анализ изменений</span>
+                            <span class="feature-check">✓</span>
+                            <span class="feature-text">Анализ изменений</span>
                         </div>
                         <div class="module-feature">
-                            <span class="feature-check feature-check-disabled">✓</span>
-                            <span class="feature-text feature-text-disabled">Compliance проверки</span>
+                            <span class="feature-check">✓</span>
+                            <span class="feature-text">Compliance проверки</span>
                         </div>
                         <div class="module-feature">
-                            <span class="feature-check feature-check-disabled">✓</span>
-                            <span class="feature-text feature-text-disabled">Поддержка Cisco, Linux, Windows</span>
+                            <span class="feature-check">✓</span>
+                            <span class="feature-text">Поддержка Cisco, Linux, Windows</span>
                         </div>
                         
                         <!-- Кнопка -->
-                        <button class="module-button module-button-disabled" disabled>
-                            В разработке
+                        <button class="module-button" id="ci-module-button">
+                            Настроить параметры
                         </button>
                     </div>
                 </div>
@@ -237,6 +234,91 @@
                 </div>
             </div>
             
+            <!-- CI Calculator Section -->
+            <div class="ci-calculator-section" id="ciSection" style="display: none;">
+                <h3>
+                    <span>⚙️</span>Config Inspector (CI) - Настройки устройств
+                    <span class="tooltip" data-tooltip="Конфигурирование устройств для анализа и контроля изменений">ⓘ</span>
+                </h3>
+                
+                <div class="ci-device-container">
+                    <!-- Управление устройствами -->
+                    <div class="device-controls">
+                        <div class="quick-add-header">
+                            <h4>Быстрый ввод</h4>
+                            <span class="quick-add-subtitle">Добавляйте строки и отправляйте</span>
+                        </div>
+                        <div class="quick-add-row">
+                            <select id="deviceTypeSelector" class="ci-device-selector">
+                                <option value="обощенное устройство">Обобщенное устройство</option>
+                                <option value="Cisco IOS (FA)">Cisco IOS (FA)</option>
+                                <option value="Cisco IOS (NA, FA, ICC, VC)">Cisco IOS (NA, FA, ICC, VC)</option>
+                                <option value="Cisco IOS (NA)">Cisco IOS (NA)</option>
+                                <option value="Linux (FA)">Linux (FA)</option>
+                                <option value="Linux (ICC)">Linux (ICC)</option>
+                                <option value="Linux (NA, FA, ICC, VC)">Linux (NA, FA, ICC, VC)</option>
+                                <option value="Linux (NA)">Linux (NA)</option>
+                                <option value="Postgres (ICC)">Postgres (ICC)</option>
+                                <option value="Windows (ICC)">Windows (ICC)</option>
+                                <option value="Dionis-NX (NA)">Dionis-NX (NA)</option>
+                            </select>
+                            <input type="number" 
+                                   id="quickAddCount" 
+                                   class="quick-add-count" 
+                                   placeholder="0" 
+                                   min="1" 
+                                   value="1">
+                            <button type="button" class="ci-add-btn" onclick="addDeviceRow()">
+                                Добавить
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Таблица устройств -->
+                    <div class="device-table-wrapper">
+                        <table class="device-table" id="deviceTable">
+                            <thead>
+                                <tr>
+                                    <th>Тип устройства</th>
+                                    <th>Количество</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deviceTableBody">
+                                <!-- Динамические строки будут добавляться через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Коэффициент запаса CI -->
+                    <div class="form-field">
+                        <label class="form-label">
+                            Коэффициент запаса CI
+                            <span class="tooltip" data-tooltip="Коэффициент запаса для расчета ресурсов Config Inspector">ⓘ</span>
+                        </label>
+                        <input type="number" class="form-input" id="ciMarginCoeff" value="1.2" step="0.1" min="1.0" max="3.0">
+                    </div>
+                    
+                    <!-- Информационная панель -->
+                    <div class="ci-info-panel">
+                        <div class="ci-info-header">
+                            <span class="ci-info-icon">📊</span>
+                            <span class="ci-info-title">Устройства для мониторинга</span>
+                        </div>
+                        <div class="ci-info-content">
+                            <div class="ci-info-item">
+                                <span class="ci-info-label">Общее количество:</span>
+                                <span class="ci-info-value" id="totalDevicesCount">0</span>
+                            </div>
+                            <div class="ci-info-item">
+                                <span class="ci-info-label">Типов устройств:</span>
+                                <span class="ci-info-value" id="deviceTypesCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="calculate-section">
                 <button class="calculate-btn" onclick="performHybridCalculation(); document.getElementById('resultsSection').style.display='block';">
                     🚀 Рассчитать конфигурацию
@@ -324,25 +406,61 @@
                     <!-- Справочная информация -->
                     <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
                         <h4 style="color: #24A7B3; margin-bottom: 10px;">📋 Справочная информация</h4>
-                        <div style="background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
-                            <div class="result-row" style="font-size: 0.9em;">
-                                <span class="result-label" style="font-weight: normal;">Рекомендуемый минимальный CPU лимит на под:</span>
-                                <span class="result-value"><span id="hybridPodCpuLimit">-</span> mCPU</span>
+                        
+                        <!-- Табы -->
+                        <div class="info-tabs">
+                            <button class="tab-button active" onclick="switchInfoTab('nac')" id="nacTab">NAC</button>
+                            <button class="tab-button" onclick="switchInfoTab('ci')" id="ciTab">CI</button>
+                        </div>
+                        
+                        <div style="background-color: #f9f9f9; padding: 10px; border-radius: 0 0 5px 5px;">
+                            <!-- NAC показатели -->
+                            <div id="nacInfoSection" class="info-tab-content">
+                                <div class="result-row" style="font-size: 0.9em;">
+                                    <span class="result-label" style="font-weight: normal;">Рекомендуемый минимальный CPU лимит на под:</span>
+                                    <span class="result-value"><span id="hybridPodCpuLimit">-</span> mCPU</span>
+                                </div>
+                                <div class="result-row" style="font-size: 0.9em;">
+                                    <span class="result-label" style="font-weight: normal;">Рекомендуемая минимальная память на под:</span>
+                                    <span class="result-value"><span id="hybridPodMemLimit">-</span> MiB</span>
+                                </div>
+                                <div class="result-row" style="font-size: 0.9em;">
+                                    <span class="result-label" style="font-weight: normal;">Расчетная нагрузка на под:</span>
+                                    <span class="result-value"><span id="hybridRpsPerPod">-</span> req/s</span>
+                                </div>
+                                
+                                <!-- Предупреждения и примечания NAC -->
+                                <div id="cpuLimitWarning" style="display: none; margin-top: 10px; padding: 10px; background-color: #fff3cd; border-radius: 5px; font-size: 0.9em;">
+                                    <!-- Динамическое предупреждение будет добавлено через JavaScript -->
+                                </div>
+                                <div style="margin-top: 10px; padding: 10px; background-color: #e3f2fd; border-radius: 5px; font-size: 0.85em;">
+                                    <strong>ℹ️ Примечание:</strong> Это рекомендуемые значения лимитов ресурсов для подов NAC, рассчитанные исходя из заданной нагрузки. 
+                                    Установка меньших лимитов может привести к недостаточной производительности системы.
+                                </div>
                             </div>
-                            <div class="result-row" style="font-size: 0.9em;">
-                                <span class="result-label" style="font-weight: normal;">Рекомендуемая минимальная память на под:</span>
-                                <span class="result-value"><span id="hybridPodMemLimit">-</span> MiB</span>
-                            </div>
-                            <div class="result-row" style="font-size: 0.9em;">
-                                <span class="result-label" style="font-weight: normal;">Расчетная нагрузка на под:</span>
-                                <span class="result-value"><span id="hybridRpsPerPod">-</span> req/s</span>
-                            </div>
-                            <div id="cpuLimitWarning" style="display: none; margin-top: 10px; padding: 10px; background-color: #fff3cd; border-radius: 5px; font-size: 0.9em;">
-                                <!-- Динамическое предупреждение будет добавлено через JavaScript -->
-                            </div>
-                            <div style="margin-top: 10px; padding: 10px; background-color: #e3f2fd; border-radius: 5px; font-size: 0.85em;">
-                                <strong>ℹ️ Примечание:</strong> Это рекомендуемые значения лимитов ресурсов для подов NAC, рассчитанные исходя из заданной нагрузки. 
-                                Установка меньших лимитов может привести к недостаточной производительности системы.
+                            
+                            <!-- CI показатели -->
+                            <div id="ciInfoSection" class="info-tab-content" style="display: none;">
+                                <div class="result-row" style="font-size: 0.9em;">
+                                    <span class="result-label" style="font-weight: normal;">Устройств под управлением:</span>
+                                    <span class="result-value"><span id="ciDevicesTotal">-</span> шт</span>
+                                </div>
+                                <div class="result-row" style="font-size: 0.9em;">
+                                    <span class="result-label" style="font-weight: normal;">Время выполнения отчетов (первичных):</span>
+                                    <span class="result-value"><span id="ciReportTimePrimary">-</span> ч</span>
+                                </div>
+                                <div class="result-row" style="font-size: 0.9em;">
+                                    <span class="result-label" style="font-weight: normal;">Время выполнения отчетов (повторных):</span>
+                                    <span class="result-value"><span id="ciReportTimeSecondary">-</span> ч</span>
+                                </div>
+                                <div class="result-row" style="font-size: 0.9em;">
+                                    <span class="result-label" style="font-weight: normal;">Дополнительная нагрузка CPU:</span>
+                                    <span class="result-value"><span id="ciCpuLoad">-</span> vCPU</span>
+                                </div>
+                                <div class="result-row" style="font-size: 0.9em;">
+                                    <span class="result-label" style="font-weight: normal;">Дополнительная нагрузка памяти:</span>
+                                    <span class="result-value"><span id="ciMemoryLoad">-</span> GB</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -377,6 +495,7 @@
     <script src="js/coefficients.js"></script>
     <script src="js/calculator.js"></script>
     <script src="js/hybrid.js"></script>
+    <script src="js/ci-calculator.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     

@@ -399,15 +399,24 @@ function getHybridInputValues() {
     };
 }
 
-function performHybridCalculation() {
+async function performHybridCalculation() {
     try {
         const inputs = getHybridInputValues();
         console.log('Hybrid inputs:', inputs);
         
-        const results = performCalculations(inputs);
+        // Получаем данные CI если модуль включен
+        let ciData = null;
+        if (window.isCIEnabled && window.isCIEnabled()) {
+            console.log('CI module enabled, fetching CI data...');
+            ciData = await window.calculateCIResources();
+            console.log('CI data:', ciData);
+        }
+        
+        // Выполняем расчеты с учетом CI данных
+        const results = performCalculations(inputs, ciData);
         console.log('Calculation results:', results);
         
-        displayHybridResults(results);
+        displayHybridResults(results, ciData);
     } catch (error) {
         console.error('Error in hybrid calculation:', error);
         // Показываем ошибку пользователю
@@ -415,7 +424,7 @@ function performHybridCalculation() {
     }
 }
 
-function displayHybridResults(results) {
+function displayHybridResults(results, ciData = null) {
     // Бизнес-показатели - таблица требований к аппаратному обеспечению
     const inputs = getHybridInputValues();
     
@@ -474,6 +483,36 @@ function displayHybridResults(results) {
         } else {
             cpuLimitWarning.style.display = 'none';
         }
+    }
+    
+    // Отображение результатов CI калькулятора
+    const ciInfoSection = document.getElementById('ciInfoSection');
+    if (ciData && ciInfoSection) {
+        // Показываем CI данные и делаем CI таб видимым
+        ciInfoSection.style.display = 'block';
+        
+        // Обновляем значения в CI результатах с правильными IDs
+        const ciDevicesTotal = document.getElementById('ciDevicesTotal');
+        const ciCpuLoad = document.getElementById('ciCpuLoad');
+        const ciMemoryLoad = document.getElementById('ciMemoryLoad');
+        const ciReportPrimary = document.getElementById('ciReportTimePrimary');
+        const ciReportSecondary = document.getElementById('ciReportTimeSecondary');
+        
+        if (ciDevicesTotal) ciDevicesTotal.textContent = ciData.totalDevices || 0;
+        if (ciCpuLoad) ciCpuLoad.textContent = (ciData.cpuUsageMax || 0).toFixed(1);
+        if (ciMemoryLoad) ciMemoryLoad.textContent = (ciData.memoryUsageMax || 0).toFixed(1);
+        // API уже возвращает время в часах
+        if (ciReportPrimary) ciReportPrimary.textContent = (ciData.reportTimePrimary || 0).toFixed(2);
+        if (ciReportSecondary) ciReportSecondary.textContent = (ciData.reportTimeSecondary || 0).toFixed(2);
+        
+        console.log('📊 CI Results displayed:', ciData);
+        
+        // Автоматически переключаемся на CI таб если есть данные
+        switchInfoTab('ci');
+    } else if (ciInfoSection) {
+        // Скрываем CI секцию и переключаемся на NAC таб
+        ciInfoSection.style.display = 'none';
+        switchInfoTab('nac');
     }
     
     // Выводим детализацию модуля NAC в консоль для разработчиков
@@ -893,3 +932,67 @@ function exportToPDF() {
     
     pdfMake.createPdf(docDefinition).download(filename);
 }
+
+// Функция для переключения табов справочной информации
+function switchInfoTab(tabName) {
+    const ciTab = document.getElementById('ciTab');
+    
+    // Проверяем, если пытаемся переключиться на CI таб, но CI модуль не выбран
+    if (tabName === 'ci') {
+        const isCISelected = window.isCISelected && window.isCISelected();
+        if (!isCISelected) {
+            // CI модуль не выбран, не переключаемся
+            console.log('CI модуль не выбран, переключение запрещено');
+            return;
+        }
+    }
+    
+    // Скрываем все контенты
+    const nacSection = document.getElementById('nacInfoSection');
+    const ciSection = document.getElementById('ciInfoSection');
+    
+    if (nacSection) nacSection.style.display = 'none';
+    if (ciSection) ciSection.style.display = 'none';
+    
+    // Убираем активный класс со всех кнопок
+    const nacTab = document.getElementById('nacTab');
+    
+    if (nacTab) nacTab.classList.remove('active');
+    if (ciTab) ciTab.classList.remove('active');
+    
+    // Показываем нужную секцию и активируем кнопку
+    if (tabName === 'nac') {
+        if (nacSection) nacSection.style.display = 'block';
+        if (nacTab) nacTab.classList.add('active');
+    } else if (tabName === 'ci') {
+        if (ciSection) ciSection.style.display = 'block';
+        if (ciTab) ciTab.classList.add('active');
+    }
+}
+
+// Функция для обновления состояния CI таба
+function updateCITabState() {
+    const ciTab = document.getElementById('ciTab');
+    if (!ciTab) return;
+    
+    const isCISelected = window.isCISelected && window.isCISelected();
+    
+    if (isCISelected) {
+        // CI модуль выбран - делаем таб активным
+        ciTab.classList.remove('disabled');
+        ciTab.removeAttribute('title');
+    } else {
+        // CI модуль не выбран - делаем таб неактивным
+        ciTab.classList.add('disabled');
+        ciTab.setAttribute('title', 'Для получения расчетов по модулю Config Inspector выберите его в списке модулей в верхней части страницы');
+        
+        // Если сейчас открыт CI таб, переключаемся на NAC
+        if (ciTab.classList.contains('active')) {
+            switchInfoTab('nac');
+        }
+    }
+}
+
+// Экспортируем функции для глобального доступа
+window.switchInfoTab = switchInfoTab;
+window.updateCITabState = updateCITabState;

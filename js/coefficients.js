@@ -130,3 +130,22 @@ function getNodeMemorySize(devices, calculatedMemory, authMethod) {
     
     return roundUpToMemorySize(calculatedMemory);
 }
+
+// Справочный массив стандартных размеров памяти для узлов (в GB)
+const STANDARD_MEMORY_SIZES = [24, 32, 48, 64, 96, 128, 256, 512];
+
+// Функция финального округления памяти до стандартных размеров с учетом CI
+function roundToStandardMemorySize(memoryGiB) {
+    // Находим ближайший подходящий размер (больше или равен)
+    for (const size of STANDARD_MEMORY_SIZES) {
+        if (memoryGiB <= size) {
+            console.log(`Memory rounded from ${memoryGiB.toFixed(2)} GB to ${size} GB (standard size)`);
+            return size;
+        }
+    }
+    
+    // Если больше максимального стандартного размера, округляем вверх до кратного 64
+    const rounded = Math.ceil(memoryGiB / 64) * 64;
+    console.log(`Memory rounded from ${memoryGiB.toFixed(2)} GB to ${rounded} GB (custom size, multiple of 64)`);
+    return rounded;
+}
