@@ -88,6 +88,9 @@ function removeDeviceRow(button) {
     row.remove();
     
     updateDevicesSummary();
+    
+    // Проверяем, остались ли активные CI устройства
+    checkCIDevicesAndSwitchToNAC();
 }
 
 // Функция для обновления количества устройств
@@ -99,6 +102,9 @@ function updateDeviceCount(input) {
     // Всегда обновляем количество в массиве, даже если 0
     updateDeviceInArray(deviceType, newCount);
     updateDevicesSummary();
+    
+    // Проверяем, остались ли активные CI устройства
+    checkCIDevicesAndSwitchToNAC();
 }
 
 // Функция для обновления устройства в массиве
@@ -428,6 +434,26 @@ function resetCIData() {
         tableBody.innerHTML = '';
     }
     updateDevicesSummary();
+}
+
+// Функция для проверки CI устройств и переключения на NAC
+function checkCIDevicesAndSwitchToNAC() {
+    // Проверяем, есть ли активные устройства (с количеством > 0)
+    const hasActiveDevices = ciDevices.some(device => device.count > 0);
+    
+    if (!hasActiveDevices) {
+        console.log('Нет активных CI устройств, переключаемся на NAC таб');
+        
+        // Переключаемся на NAC таб
+        if (window.switchInfoTab) {
+            window.switchInfoTab('nac');
+        }
+        
+        // Делаем пересчет только NAC данных
+        if (window.performHybridCalculation) {
+            window.performHybridCalculation();
+        }
+    }
 }
 
 // Экспортируем функции для использования в других модулях

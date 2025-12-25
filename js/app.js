@@ -170,6 +170,11 @@ function updateCalculatorSections() {
         ciSection.style.display = 'block';
     } else {
         ciSection.style.display = 'none';
+        
+        // Автоматически переключаемся на NAC таб при снятии выделения с CI модуля
+        if (window.switchInfoTab) {
+            window.switchInfoTab('nac');
+        }
     }
     
     // Обновляем состояние CI таба

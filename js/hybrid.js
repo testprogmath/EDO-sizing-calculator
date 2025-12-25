@@ -23,6 +23,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализируем превью и выполняем начальный расчет
     updatePreview();
+    
+    // Устанавливаем NAC как дефолтную активную вкладку
+    switchInfoTab('nac');
+    
     performHybridCalculation(); // Начальный расчет с MAB
 });
 
@@ -506,13 +510,9 @@ function displayHybridResults(results, ciData = null) {
         if (ciReportSecondary) ciReportSecondary.textContent = (ciData.reportTimeSecondary || 0).toFixed(2);
         
         console.log('📊 CI Results displayed:', ciData);
-        
-        // Автоматически переключаемся на CI таб если есть данные
-        switchInfoTab('ci');
     } else if (ciInfoSection) {
-        // Скрываем CI секцию и переключаемся на NAC таб
+        // Скрываем CI секцию если нет данных
         ciInfoSection.style.display = 'none';
-        switchInfoTab('nac');
     }
     
     // Выводим детализацию модуля NAC в консоль для разработчиков
@@ -608,6 +608,10 @@ function exportToPDF() {
     const inputs = getHybridInputValues();
     const deviceCount = inputs.devices.toLocaleString();
     
+    // Получаем данные CI если модуль активен
+    const isCIEnabled = window.isCISelected && window.isCISelected();
+    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
+    
     const authMethodRu = {
         'MAB': 'MAC-адрес',
         'PEAP': 'PEAP (MS-CHAPv2)', 
@@ -677,11 +681,30 @@ function exportToPDF() {
                     '✅ API Gateway включен (10% накладные расходы)',
                     '✅ RADIUS Accounting включен (обязателен для всех методов)',
                     ...(inputs.authMethod === 'EAP-TLS' ? [inputs.ocspEnabled ? '✅ OCSP проверка сертификатов включена' : '❌ OCSP проверка сертификатов отключена'] : []),
-                    ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ Защита от MAC-спуфинга включена (требует RADIUS Accounting)' : '❌ Защита от MAC-спуфинга отключена'] : [])
+                    ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ Защита от MAC-спуфинга включена (требует RADIUS Accounting)' : '❌ Защита от MAC-спуфинга отключена'] : []),
+                    ...(isCIEnabled ? ['✅ Config Inspector (CI) включен - мониторинг конфигураций устройств'] : [])
                 ],
                 style: 'normal',
                 margin: [20, 0, 0, 20]
             },
+
+            // Информация о CI если модуль включен
+            ...(isCIEnabled && ciData ? [{
+                text: 'Модуль Config Inspector (CI):',
+                style: 'normal',
+                margin: [0, 10, 0, 5]
+            },
+            {
+                ul: [
+                    `Устройств под управлением: ${ciData.totalDevices || 0} шт`,
+                    `Потребление CPU: ${(ciData.cpuUsageMax || 0).toFixed(1)} vCPU на кластер`,
+                    `Потребление памяти: ${(ciData.memoryUsageMax || 0).toFixed(1)} ГБ на кластер`,
+                    `Время выполнения отчетов (первичных): ${(ciData.reportTimePrimary || 0).toFixed(2)} ч`,
+                    `Время выполнения отчетов (вторичных): ${(ciData.reportTimeSecondary || 0).toFixed(2)} ч`
+                ],
+                style: 'normal',
+                margin: [20, 0, 0, 20]
+            }] : []),
 
             // Таблица программного обеспечения
             {
