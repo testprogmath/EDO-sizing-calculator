@@ -271,21 +271,64 @@ function updatePreview() {
     // Функция оставлена для возможных будущих обновлений UI
 }
 
-function showScalingWarning(devices) {
+function showScalingWarning(devices, recommendedNodes) {
     const warningDiv = document.getElementById('scalingWarning');
     const messageDiv = document.getElementById('scalingMessage');
     
-    messageDiv.innerHTML = `
-        Для <strong>${devices.toLocaleString()}</strong> устройств автоматически установлено <strong>5 нод</strong>.<br>
-        <strong>Рекомендация:</strong> Для данной конфигурации рекомендуется использовать <strong>5-7 нод</strong> для обеспечения оптимальной производительности и отказоустойчивости.
-    `;
-    
-    warningDiv.style.display = 'block';
-    
-    // Автоматически скрываем предупреждение через 10 секунд
-    setTimeout(() => {
-        warningDiv.style.display = 'none';
-    }, 10000);
+    // Если элементы существуют, показываем красивое предупреждение
+    if (warningDiv && messageDiv) {
+        let rangeText = '';
+        let reason = '';
+        let additionalWarning = '';
+        
+        if (recommendedNodes === 3) {
+            rangeText = '3 узла';
+            reason = 'оптимальная конфигурация для данного количества устройств';
+        } else if (recommendedNodes === 5) {
+            rangeText = '5-6 узлов';
+            reason = 'требуется дополнительная мощность для обработки нагрузки';
+        } else if (recommendedNodes === 7) {
+            rangeText = '7-8 узлов';
+            reason = 'высокая нагрузка требует распределения по большему количеству узлов';
+        } else if (recommendedNodes === 9) {
+            rangeText = '9-10 узлов';
+            reason = 'критическая нагрузка требует максимального распределения';
+        } else {
+            rangeText = `${recommendedNodes} узлов`;
+            reason = 'необходимо для обеспечения производительности';
+        }
+        
+        // Добавляем предупреждение для больших инсталляций
+        if (devices > 30000) {
+            additionalWarning = `<br><br>
+            <strong style="color: #ff6b35;">⚠️ ВНИМАНИЕ:</strong> Для инсталляций более 30,000 устройств расчёт является <strong>приблизительным</strong>. 
+            <strong>Требуется проверка и валидация инженерной командой</strong> на ${recommendedNodes} узлах перед развертыванием в продуктивной среде.`;
+        }
+        
+        messageDiv.innerHTML = `
+            Для <strong>${devices.toLocaleString()}</strong> устройств автоматически установлено <strong>${recommendedNodes} узлов</strong>.<br>
+            <strong>Причина:</strong> ${reason}.<br>
+            <strong>Рекомендация:</strong> Используйте <strong>${rangeText}</strong> для оптимальной производительности и отказоустойчивости.
+            ${additionalWarning}
+        `;
+        
+        warningDiv.style.display = 'block';
+        
+        // Для больших инсталляций показываем предупреждение дольше
+        const timeout = devices > 30000 ? 15000 : 10000;
+        setTimeout(() => {
+            warningDiv.style.display = 'none';
+        }, timeout);
+    } else {
+        // Если элементов нет, показываем alert
+        let message = `Для ${devices.toLocaleString()} устройств количество узлов автоматически изменено на ${recommendedNodes} для обеспечения оптимальной производительности при лимите 2500 mCPU на под.`;
+        
+        if (devices > 30000) {
+            message += `\n\n⚠️ ВНИМАНИЕ: Для инсталляций более 30,000 устройств расчёт является приблизительным. Требуется проверка инженерной командой на ${recommendedNodes} узлах.`;
+        }
+        
+        alert(message);
+    }
 }
 
 function hideScalingWarning() {
@@ -302,16 +345,42 @@ function getHybridInputValues() {
     const devices = parseInt(document.getElementById('hybridDevices').value);
     let nodeCount = parseInt(document.getElementById('hybridNodeCount').value);
     
-    // Автоматическое масштабирование для больших нагрузок
-    if (devices > 20000 && nodeCount < 5) {
-        nodeCount = 5;
-        // Обновляем dropdown без вызова событий
+    // Автоматическое масштабирование узлов на основе количества устройств
+    // С учетом реальной нагрузки и лимита 2500 mCPU на под
+    // При MAB с Accounting один под может обработать ~18 RPS
+    // При 30% concurrent и 60 сек burst: 1000 устройств = 5 RPS, 20000 = 100 RPS
+    
+    let recommendedNodes = nodeCount;
+    let needsScaling = false;
+    
+    // Упрощенная формула: каждые 20-23К устройств требуют +2 узла
+    // Это учитывает реальную нагрузку с запасом
+    if (devices <= 23000) {
+        // До 23000 устройств - 3 узла (комфортно для большинства сценариев)
+        recommendedNodes = 3;
+    } else if (devices <= 46000) {
+        // 23001-46000 устройств - минимум 5 узлов
+        recommendedNodes = 5;
+    } else if (devices <= 69000) {
+        // 46001-69000 устройств - минимум 7 узлов
+        recommendedNodes = 7;
+    } else {
+        // Более 69000 устройств - минимум 9 узлов
+        recommendedNodes = 9;
+    }
+    
+    // Проверяем, нужно ли изменить количество узлов
+    if (nodeCount < recommendedNodes) {
+        needsScaling = true;
+        nodeCount = recommendedNodes;
+        
+        // Обновляем dropdown
         const nodeSelect = document.getElementById('hybridNodeCount');
-        const currentValue = nodeSelect.value;
-        if (currentValue !== "5") {
-            nodeSelect.value = 5;
-            // Показываем предупреждение только если реально изменили значение
-            showScalingWarning(devices);
+        const currentValue = parseInt(nodeSelect.value);
+        if (currentValue !== recommendedNodes) {
+            nodeSelect.value = recommendedNodes;
+            // Показываем предупреждение с правильным сообщением
+            showScalingWarning(devices, recommendedNodes);
         }
     }
     
@@ -350,6 +419,23 @@ function displayHybridResults(results) {
     // Бизнес-показатели - таблица требований к аппаратному обеспечению
     const inputs = getHybridInputValues();
     
+    // Показываем/скрываем предупреждение для больших инсталляций
+    const largeInstallWarning = document.getElementById('largeInstallationWarning');
+    if (largeInstallWarning) {
+        if (inputs.devices > 30000) {
+            largeInstallWarning.style.display = 'block';
+            largeInstallWarning.innerHTML = `
+                <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin: 15px 0;">
+                    <strong style="color: #ff6b35;">⚠️ Внимание: Крупная инсталляция</strong><br>
+                    Для ${inputs.devices.toLocaleString()} устройств расчёт является <strong>приблизительным</strong>.<br>
+                    <strong>Обязательно требуется проверка и валидация инженерной командой</strong> на ${inputs.nodeCount} узлах перед развертыванием.
+                </div>
+            `;
+        } else {
+            largeInstallWarning.style.display = 'none';
+        }
+    }
+    
     // Рассчитываем общие требования к серверу комплекса (все ноды)
     const serverTotalCpu = results.totalCpu; // уже рассчитано в calculator.js
     const serverTotalMemory = results.totalMemory; // уже рассчитано в calculator.js
@@ -370,8 +456,25 @@ function displayHybridResults(results) {
     document.getElementById('hybridPodCpuLimit').textContent = results.podCpuLimit;
     document.getElementById('hybridPodMemLimit').textContent = results.podMemLimit;
     document.getElementById('hybridTargetRps').textContent = results.targetRps;
-    document.getElementById('hybridRpsPerPod').textContent = results.rpsPerPod;
+    document.getElementById('hybridRpsPerPod').textContent = Math.round(results.rpsPerPod * 10) / 10; // Округляем до 1 знака
     document.getElementById('hybridDbLoad').textContent = results.dbRequirements.dbLoad;
+    
+    // Проверяем, превышает ли CPU лимит стандартное значение 2500 mCPU
+    const cpuLimitWarning = document.getElementById('cpuLimitWarning');
+    if (cpuLimitWarning) {
+        if (results.podCpuLimit > 2500) {
+            const podsWithStandardLimit = Math.ceil(results.targetRps / (2500 / (results.podCpuLimit / results.rpsPerPod)));
+            cpuLimitWarning.style.display = 'block';
+            cpuLimitWarning.innerHTML = `
+                <strong style="color: #ff6b35;">⚠️ Внимание:</strong> Рекомендуемый CPU лимит (${results.podCpuLimit} mCPU) превышает стандартное значение 2500 mCPU.<br>
+                <strong>Варианты решения:</strong><br>
+                • Использовать рекомендуемый лимит ${results.podCpuLimit} mCPU для ${results.recommendedPods} подов<br>
+                • Или увеличить количество подов до ${podsWithStandardLimit} с лимитом 2500 mCPU на каждый
+            `;
+        } else {
+            cpuLimitWarning.style.display = 'none';
+        }
+    }
     
     // Выводим детализацию модуля NAC в консоль для разработчиков
     if (results.nacRadiusDetails) {
@@ -425,6 +528,29 @@ function displayHybridResults(results) {
         console.group('%c📋 Raw Calculation Data', 'color: #02A7B6; font-size: 14px');
         console.log('Full NAC details object:', results.nacRadiusDetails);
         console.groupEnd();
+        
+        // Alternative calculations with 2500 mCPU limit
+        if (results.nacRadiusDetails.podCpuLimit > 2500) {
+            console.group('%c⚠️ Alternative Configuration (2500 mCPU limit)', 'color: #ff9800; font-size: 14px; font-weight: bold');
+            
+            const altCpuLimit = 2500;
+            const altRpsPerPod = altCpuLimit / results.nacRadiusDetails.cpuPeakPerRps;
+            const altPodsNeeded = Math.ceil(results.nacRadiusDetails.targetRps / altRpsPerPod);
+            const altPodsPerNode = Math.ceil(altPodsNeeded / inputs.nodeCount);
+            
+            console.log(`%c📊 With 2500 mCPU limit:`, 'color: #ff9800; font-weight: bold');
+            console.log(`  RPS per pod: ${altRpsPerPod.toFixed(1)}`);
+            console.log(`  Pods needed: ${altPodsNeeded}`);
+            console.log(`  Pods per node: ${altPodsPerNode}`);
+            console.log(`  Total pods capacity: ${(altPodsNeeded * altRpsPerPod).toFixed(1)} RPS`);
+            
+            console.log(`%c⚡ CPU comparison:`, 'color: #ff9800; font-weight: bold');
+            console.log(`  Recommended: ${results.nacRadiusDetails.podCpuLimit.toFixed(0)} mCPU`);
+            console.log(`  Limited: ${altCpuLimit} mCPU`);
+            console.log(`  Performance impact: ${((results.nacRadiusDetails.podCpuLimit - altCpuLimit) / results.nacRadiusDetails.podCpuLimit * 100).toFixed(1)}% reduction`);
+            
+            console.groupEnd();
+        }
         
         console.groupEnd();
     }
@@ -510,8 +636,9 @@ function exportToPDF() {
             {
                 ul: [
                     '✅ API Gateway включен (10% накладные расходы)',
+                    '✅ RADIUS Accounting включен (обязателен для всех методов)',
                     ...(inputs.authMethod === 'EAP-TLS' ? [inputs.ocspEnabled ? '✅ OCSP проверка сертификатов включена' : '❌ OCSP проверка сертификатов отключена'] : []),
-                    ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ MAC-спуфинг защита включена' : '❌ MAC-спуфинг защита отключена'] : [])
+                    ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ Защита от MAC-спуфинга включена (требует RADIUS Accounting)' : '❌ Защита от MAC-спуфинга отключена'] : [])
                 ],
                 style: 'normal',
                 margin: [20, 0, 0, 20]

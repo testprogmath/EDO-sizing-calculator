@@ -32,8 +32,9 @@ function getInputValues() {
 function validateInputs(inputs) {
     const errors = [];
     
-    if (inputs.devices < 1000 || inputs.devices > 20000) {
-        errors.push('Количество устройств должно быть от 1000 до 20000');
+    // Убрали верхний лимит для устройств - теперь автоматически масштабируем узлы
+    if (inputs.devices < 1000) {
+        errors.push('Количество устройств должно быть не менее 1000');
     }
     
     if (inputs.concurrentPct < 1 || inputs.concurrentPct > 100) {
@@ -49,7 +50,7 @@ function validateInputs(inputs) {
     }
     
     if (inputs.nodeCount < 1 || inputs.nodeCount > 10) {
-        errors.push('Количество нод должно быть от 1 до 10');
+        errors.push('Количество узлов должно быть от 1 до 10');
     }
     
     if (errors.length > 0) {

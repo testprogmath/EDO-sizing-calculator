@@ -747,6 +747,46 @@ body {
     margin-left: 5px;
 }
 
+/* Tooltip стили */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    color: var(--primary);
+    cursor: help;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+.tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--dark);
+    color: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: normal;
+    z-index: 1000;
+    font-weight: normal;
+    max-width: 280px;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    text-transform: none;
+}
+
+.tooltip:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--dark);
+}
+
 /* Results section */
 .results-grid {
     display: grid;
