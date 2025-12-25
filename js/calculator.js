@@ -298,7 +298,11 @@ function updateDatabaseRequirements(dbReq) {
 
 function exportToCSV() {
     if (!window.lastCalculationResults) {
-        alert('Сначала выполните расчет');
+        if (window.showToast) {
+            window.showToast('Сначала выполните расчет', 'warning');
+        } else {
+            alert('Сначала выполните расчет');
+        }
         return;
     }
     
@@ -319,7 +323,6 @@ function exportToCSV() {
     if (inputs.authMethod) {
         csv += '\nКонфигурация\n';
         csv += 'Метод аутентификации,' + inputs.authMethod + '\n';
-        csv += 'API Gateway,Включен (10% накладные расходы)\n';
         if (inputs.authMethod === 'EAP-TLS') {
             csv += 'OCSP проверка сертификатов,' + (inputs.ocspEnabled ? 'Включена' : 'Отключена') + '\n';
         }
@@ -402,7 +405,11 @@ function fallbackCopyToClipboard(text) {
 
 function copyToClipboard() {
     if (!window.lastCalculationResults) {
-        alert('Сначала выполните расчет');
+        if (window.showToast) {
+            window.showToast('Сначала выполните расчет', 'warning');
+        } else {
+            alert('Сначала выполните расчет');
+        }
         return;
     }
     

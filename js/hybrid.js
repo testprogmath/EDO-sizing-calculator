@@ -424,7 +424,11 @@ async function performHybridCalculation() {
     } catch (error) {
         console.error('Error in hybrid calculation:', error);
         // Показываем ошибку пользователю
-        alert('Ошибка расчета: ' + error.message);
+        if (window.showToast) {
+            window.showToast('Ошибка расчета: ' + error.message, 'error');
+        } else {
+            alert('Ошибка расчета: ' + error.message);
+        }
     }
 }
 
@@ -594,7 +598,11 @@ function displayHybridResults(results, ciData = null) {
 
 function exportToPDF() {
     if (!window.lastCalculationResults) {
-        alert('Сначала выполните расчет');
+        if (window.showToast) {
+            window.showToast('Сначала выполните расчет', 'warning');
+        } else {
+            alert('Сначала выполните расчет');
+        }
         return;
     }
 
@@ -672,7 +680,6 @@ function exportToPDF() {
             },
             {
                 ul: [
-                    '✅ API Gateway включен (10% накладные расходы)',
                     '✅ RADIUS Accounting включен (обязателен для всех методов)',
                     ...(inputs.authMethod === 'EAP-TLS' ? [inputs.ocspEnabled ? '✅ OCSP проверка сертификатов включена' : '❌ OCSP проверка сертификатов отключена'] : []),
                     ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ Защита от MAC-спуфинга включена (требует RADIUS Accounting)' : '❌ Защита от MAC-спуфинга отключена'] : []),
@@ -714,7 +721,6 @@ function exportToPDF() {
                         [{text: 'Компонент', style: 'tableHeaderCell'}, {text: 'Характеристики', style: 'tableHeaderCell'}],
                         ['Количество устройств', deviceCount],
                         ['Метод аутентификации', authMethodRu[inputs.authMethod] || inputs.authMethod],
-                        ['API Gateway', 'Включен (10% накладные расходы)'],
                         ...(inputs.authMethod === 'EAP-TLS' ? [['OCSP проверка сертификатов', inputs.ocspEnabled ? 'Включена' : 'Отключена']] : []),
                         ...(inputs.authMethod === 'MAB' ? [['MAC-спуфинг защита', inputs.spoofingEnabled ? 'Включена' : 'Отключена']] : []),
                         [{text: '', colSpan: 2}, ''],
@@ -727,6 +733,9 @@ function exportToPDF() {
                 layout: 'lightHorizontalLines',
                 margin: [0, 0, 0, 20]
             },
+
+            // Разрыв страницы перед таблицей аппаратных требований
+            {text: '', pageBreak: 'before'},
 
             // Таблица аппаратных требований
             {

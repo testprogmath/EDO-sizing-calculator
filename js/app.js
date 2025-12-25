@@ -207,7 +207,6 @@ function copyToClipboard() {
     text += 'Конфигурация:\n';
     text += '• Количество устройств: ' + (inputs.devices || 'N/A') + '\n';
     text += '• Метод аутентификации: ' + (inputs.authMethod || 'N/A') + '\n';
-    text += '• API Gateway: Включен (10% накладные расходы)\n';
     
     if (inputs.authMethod === 'EAP-TLS' && inputs.ocspEnabled !== undefined) {
         text += '• OCSP проверка: ' + (inputs.ocspEnabled ? 'Включена' : 'Отключена') + '\n';
@@ -254,13 +253,59 @@ function copyToClipboard() {
     // Используем современный API или фоллбэк
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text).then(function() {
-            alert('Результаты скопированы в буфер обмена');
+            showToast('Результаты скопированы в буфер обмена');
         }).catch(function(err) {
             fallbackCopyToClipboard(text);
         });
     } else {
         fallbackCopyToClipboard(text);
     }
+}
+
+// Функция показа toast уведомлений
+function showToast(message, type = 'success') {
+    // Удаляем существующие toast если есть
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Создаем новый toast
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Иконки для разных типов
+    const icons = {
+        'success': '✅',
+        'error': '❌',
+        'warning': '⚠️',
+        'info': 'ℹ️'
+    };
+    
+    toast.innerHTML = `
+        <div class="toast-content">
+            <span class="toast-icon">${icons[type] || icons.success}</span>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Добавляем в DOM
+    document.body.appendChild(toast);
+    
+    // Показываем с анимацией
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    // Автоматически скрываем через 3 секунды
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 300);
+    }, 3000);
 }
 
 // Фоллбэк функция для копирования
@@ -276,14 +321,17 @@ function fallbackCopyToClipboard(text) {
     
     try {
         document.execCommand('copy');
-        alert('Результаты скопированы в буфер обмена');
+        showToast('Результаты скопированы в буфер обмена');
     } catch (err) {
-        alert('Не удалось скопировать в буфер обмена. Попробуйте выделить текст вручную.');
+        showToast('Не удалось скопировать в буфер обмена. Попробуйте выделить текст вручную.', 'error');
         console.error('Ошибка копирования:', err);
     }
     
     document.body.removeChild(textArea);
 }
+
+// Экспортируем функцию для глобального использования
+window.showToast = showToast;
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {

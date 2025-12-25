@@ -1251,4 +1251,45 @@ body {
 .info-tab-content[style*="display: none"] {
     display: none !important;
 }
+
+/* Toast уведомления */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(2, 167, 182, 0.3);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1050;
+    transform: translateX(350px);
+    transition: transform 0.3s ease-in-out;
+    max-width: 320px;
+    min-width: 280px;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast.error {
+    background: var(--danger);
+}
+
+.toast.warning {
+    background: var(--warning);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toast-icon {
+    font-size: 16px;
+}
 }
