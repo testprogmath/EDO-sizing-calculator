@@ -243,8 +243,9 @@ function copyToClipboard() {
         t += 'БИЗНЕС-ПОКАЗАТЕЛИ (оценка):\n';
         t += '• Количество серверов: 2 шт (комплекс + СУБД)\n';
         const memRounded = (window.roundToCIStandardMemorySize ? window.roundToCIStandardMemorySize(ciData.memoryUsageMax || 0) : (ciData.memoryUsageMax || 0));
-        t += '• Комплекс CI: ' + (ciData.cpuUsageMax || 0).toFixed(1) + ' vCPU, ' + memRounded + ' ГБ\n';
-        t += '• Сервер СУБД: ' + (ciData.cpuUsageMax || 0).toFixed(1) + ' vCPU, ' + memRounded + ' ГБ\n\n';
+        const cpuRounded = (window.roundToCIStandardCpu ? window.roundToCIStandardCpu(ciData.cpuUsageMax || 0) : (ciData.cpuUsageMax || 0));
+        t += '• Комплекс CI: ' + cpuRounded + ' vCPU, ' + memRounded + ' ГБ\n';
+        t += '• Сервер СУБД: ' + cpuRounded + ' vCPU, ' + memRounded + ' ГБ\n\n';
         t += 'ПОКАЗАТЕЛИ CI:\n';
         t += '• Устройства под управлением: ' + (ciData.totalDevices || 0) + ' шт\n';
         t += '• Время отчетов (первичных): ' + (ciData.reportTimePrimary || 0).toFixed(2) + ' ч\n';

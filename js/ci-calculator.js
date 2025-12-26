@@ -47,8 +47,15 @@ function roundToCIStandardMemorySize(memoryGiB) {
     return Math.ceil(memoryGiB / 64) * 64;
 }
 
+// CI-only: округление CPU до кратного 4 (4, 8, 12, 16, ...)
+function roundToCIStandardCpu(vcpu) {
+    const n = Number(vcpu) || 0;
+    if (n <= 4) return 4;
+    return Math.ceil(n / 4) * 4;
+}
+
 // API Configuration
-const CI_API_BASE_URL = 'http://10.116.41.99:8000';
+const CI_API_BASE_URL = 'http://0.0.0.0:8888';
 const CI_API_FALLBACK_URL = 'http://sizing-calc.edo.dev.da.lan:8000';
 
 // Отображаемые названия для типов устройств (UI-лейбл != API-значение)
@@ -578,9 +585,10 @@ async function calculateCIOnly() {
         // Обновляем бизнес-показатели в общей карточке (2 сервера: комплекс + СУБД)
         // Для CI-only используем одинаковые значения для комплекса и СУБД
         const roundedMem = roundToCIStandardMemorySize(memoryUsageMax || 0);
-        set('hybridServerCpu', (cpuUsageMax || 0).toFixed(1));
+        const roundedCpu = roundToCIStandardCpu(cpuUsageMax || 0);
+        set('hybridServerCpu', roundedCpu);
         set('hybridServerMemory', roundedMem);
-        set('hybridDbCpu', (cpuUsageMax || 0).toFixed(1));
+        set('hybridDbCpu', roundedCpu);
         set('hybridDbMemory', roundedMem);
 
         // Переключаем таб на CI
@@ -594,3 +602,4 @@ async function calculateCIOnly() {
 
 window.calculateCIOnly = calculateCIOnly;
 window.roundToCIStandardMemorySize = roundToCIStandardMemorySize;
+window.roundToCIStandardCpu = roundToCIStandardCpu;

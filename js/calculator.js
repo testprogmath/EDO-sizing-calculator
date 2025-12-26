@@ -318,9 +318,10 @@ function exportToCSV() {
         csv += '\nБизнес-показатели\n';
         csv += 'Количество серверов,2 (Комплекс + СУБД)\n';
         const memRounded = (window.roundToCIStandardMemorySize ? window.roundToCIStandardMemorySize(ciData.memoryUsageMax || 0) : (ciData.memoryUsageMax || 0));
-        csv += 'CPU Комплекс (vCPU),' + (ciData.cpuUsageMax || 0).toFixed(1) + '\n';
+        const cpuRounded = (window.roundToCIStandardCpu ? window.roundToCIStandardCpu(ciData.cpuUsageMax || 0) : (ciData.cpuUsageMax || 0));
+        csv += 'CPU Комплекс (vCPU),' + cpuRounded + '\n';
         csv += 'Память Комплекс (ГБ),' + memRounded + '\n';
-        csv += 'CPU СУБД (vCPU),' + (ciData.cpuUsageMax || 0).toFixed(1) + '\n';
+        csv += 'CPU СУБД (vCPU),' + cpuRounded + '\n';
         csv += 'Память СУБД (ГБ),' + memRounded + '\n';
         csv += '\nПоказатели CI\n';
         csv += 'Устройств под управлением,' + (ciData.totalDevices || 0) + ' шт\n';
