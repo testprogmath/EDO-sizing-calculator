@@ -67,11 +67,11 @@ body {
 .quick-btn {
     padding: 10px 20px;
     background: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border: 2px solid var(--border);
+    border-radius: 0;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
 }
 
 .quick-btn:hover {
@@ -308,27 +308,25 @@ body {
 
 .calculate-btn {
     padding: 16px 48px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: white;
-    border: none;
+    background: white;
+    color: var(--primary);
+    border: 2px solid var(--primary);
     border-radius: 0;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 14px rgba(2, 167, 182, 0.3);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .calculate-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(2, 167, 182, 0.4);
+    background: rgba(2, 167, 182, 0.06);
 }
 
 .results-section {
     margin-top: 40px;
     padding: 32px;
     background: linear-gradient(135deg, rgba(2, 167, 182, 0.05) 0%, rgba(36, 167, 179, 0.05) 100%);
-    border-radius: 12px;
+    border-radius: 0;
     border: 1px solid rgba(2, 167, 182, 0.2);
 }
 
@@ -427,10 +425,10 @@ body {
     min-width: 150px;
     padding: 12px 20px;
     background: white;
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: 0;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -442,8 +440,6 @@ body {
 .export-btn:hover {
     background: var(--light) !important;
     border-color: var(--primary) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 /* Module selection section */
@@ -502,14 +498,15 @@ body {
     gap: 15px;
 }
 
-.module-header-nac {
-    background: linear-gradient(135deg, #02A7B6 0%, #24A7B3 100%);
-    color: white;
-}
-
 .module-header-ci {
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     color: #666;
+}
+
+/* Selected module: paint like current NAC */
+.module-card.selected .module-header {
+    background: linear-gradient(135deg, #02A7B6 0%, #24A7B3 100%);
+    color: white;
 }
 
 .module-icon {
@@ -521,13 +518,14 @@ body {
     font-size: 24px;
 }
 
-.module-icon-nac {
-    background: rgba(255, 255, 255, 0.2);
-}
-
 .module-icon-ci {
     background: rgba(255, 255, 255, 0.8);
     color: #999;
+}
+
+.module-card.selected .module-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: inherit;
 }
 
 .module-info h3 {
@@ -542,9 +540,9 @@ body {
     font-size: 14px;
 }
 
-.module-info-ci h3 {
-    color: #666;
-}
+.module-info-ci h3 { color: #666; }
+.module-card.selected .module-info h3 { color: white; }
+.module-card.selected .module-info p { color: rgba(255,255,255,0.95); }
 
 .module-features {
     padding: 25px;
@@ -589,26 +587,31 @@ body {
 .module-button {
     width: 100%;
     padding: 12px;
-    border: none;
+    border: 2px solid var(--border);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    background: white;
+    color: #2f3a3f;
+    border-radius: 0;
 }
 
 .module-button-active {
-    background: var(--primary);
-    color: white;
-}
-
-.module-button-active:hover {
-    background: #1e8e98;
+    background: white;
+    color: var(--primary);
+    border-color: var(--primary);
 }
 
 .module-button-disabled {
-    background: #ecf0f1;
+    background: #f5f6f7;
     color: #95a5a6;
     cursor: not-allowed;
+}
+
+.module-button:hover {
+    background: var(--light);
+    border-color: var(--primary);
 }
 
 .module-badge {
@@ -849,7 +852,7 @@ body {
     margin-top: 30px;
     padding: 25px;
     background: white;
-    border-radius: 8px;
+    border-radius: 0;
     border: 1px solid var(--border);
 }
 
@@ -873,7 +876,7 @@ body {
     border-collapse: collapse;
     margin-bottom: 15px;
     background: white;
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
     border: 1px solid var(--border);
 }
@@ -1132,7 +1135,7 @@ body {
     padding: 20px;
     background: rgba(2, 167, 182, 0.03);
     border: 1px solid rgba(2, 167, 182, 0.1);
-    border-radius: 8px;
+    border-radius: 0;
 }
 
 #ciResultsSection h4 {
@@ -1152,7 +1155,7 @@ body {
     text-align: center;
     padding: 12px;
     background: white;
-    border-radius: 6px;
+    border-radius: 0;
     border: 1px solid rgba(2, 167, 182, 0.1);
 }
 
@@ -1260,7 +1263,7 @@ body {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
     color: white;
     padding: 16px 20px;
-    border-radius: 8px;
+    border-radius: 0;
     box-shadow: 0 6px 20px rgba(2, 167, 182, 0.3);
     font-size: 14px;
     font-weight: 500;

@@ -165,7 +165,18 @@ async function calculateCIResources() {
         return null;
     }
     
-    const marginCoeff = parseFloat(document.getElementById('ciMarginCoeff').value) || 1.2;
+    // Интерпретируем ввод как проценты (по умолчанию). Для обратной совместимости принимаем и множитель (1.2)
+    const marginInput = parseFloat(document.getElementById('ciMarginCoeff').value);
+    let marginCoeff = 1.2; // множитель по умолчанию
+    if (!isNaN(marginInput)) {
+        if (marginInput <= 3 && marginInput >= 0.5) {
+            // Похоже, ввели множитель напрямую (например, 1.2)
+            marginCoeff = marginInput;
+        } else {
+            // Ввод как проценты (например, 20 -> 1 + 0.2)
+            marginCoeff = 1 + (marginInput / 100);
+        }
+    }
     
     // Полный список всех возможных устройств в том же порядке, что и в API
     const allDeviceTypes = [
@@ -498,3 +509,44 @@ window.calculateCIResources = calculateCIResources;
 window.getCIData = getCIData;
 window.isCIEnabled = isCIEnabled;
 window.resetCIData = resetCIData;
+
+// CI-only calculation and UI update
+async function calculateCIOnly() {
+    try {
+        // Если нет активных устройств, показываем предупреждение и выходим
+        const hasActiveDevices = ciDevices.some(d => (d.count || 0) > 0);
+        if (!hasActiveDevices) {
+            if (window.showToast) {
+                window.showToast('Добавьте хотя бы одно устройство для CI', 'warning');
+            }
+            return;
+        }
+        const ciResult = await calculateCIResources();
+        if (!ciResult) {
+            // Очистить CI поля, если данных нет
+            const fields = ['ciDevicesTotal','ciReportTimePrimary','ciReportTimeSecondary','ciCpuLoad','ciMemoryLoad'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '-';
+            });
+            return;
+        }
+        // Обновляем CI информационный блок
+        const { totalDevices, reportTimePrimary, reportTimeSecondary, cpuUsageMax, memoryUsageMax } = ciResult;
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('ciDevicesTotal', (totalDevices || 0).toLocaleString('ru-RU'));
+        set('ciReportTimePrimary', (reportTimePrimary || 0).toFixed(2));
+        set('ciReportTimeSecondary', (reportTimeSecondary || 0).toFixed(2));
+        set('ciCpuLoad', (cpuUsageMax || 0).toFixed(1));
+        set('ciMemoryLoad', (memoryUsageMax || 0).toFixed(1));
+
+        // Переключаем таб на CI
+        if (window.switchInfoTab) {
+            window.switchInfoTab('ci');
+        }
+    } catch (e) {
+        console.error('CI-only calculation error:', e);
+    }
+}
+
+window.calculateCIOnly = calculateCIOnly;

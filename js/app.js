@@ -165,6 +165,8 @@ function isCISelected() {
 // Функция для обновления видимости секций калькулятора
 function updateCalculatorSections() {
     const ciSection = document.getElementById('ciSection');
+    const nacOnlyBlocks = document.querySelectorAll('.nac-only');
+    const nacTabBtn = document.getElementById('nacTab');
     
     if (isCISelected()) {
         ciSection.style.display = 'block';
@@ -177,15 +179,26 @@ function updateCalculatorSections() {
         }
     }
     
+    // Скрываем/показываем NAC элементы управления и метрики
+    const nacVisible = isNACSelected();
+    nacOnlyBlocks.forEach(el => {
+        el.style.display = nacVisible ? '' : 'none';
+    });
+    if (nacTabBtn) {
+        nacTabBtn.style.display = nacVisible ? '' : 'none';
+    }
+    // Если NAC не выбран, переключаемся на CI таб
+    if (!nacVisible && isCISelected() && window.switchInfoTab) {
+        window.switchInfoTab('ci');
+    }
+
     // Обновляем состояние CI таба
     if (window.updateCITabState) {
         window.updateCITabState();
     }
     
-    // Обновляем расчеты при изменении модулей
-    if (window.performHybridCalculation && isAnyModuleSelected()) {
-        performHybridCalculation();
-    }
+    // Не запускаем расчеты автоматически при выборе модулей —
+    // расчеты инициируются только кнопкой "Рассчитать конфигурацию"
 }
 
 // Функция копирования результатов в буфер обмена
@@ -335,8 +348,44 @@ window.showToast = showToast;
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // Устанавливаем начальное состояние CI таба
-    if (window.updateCITabState) {
-        window.updateCITabState();
+    // Приводим UI в состояние "модуль не выбран" по умолчанию
+    if (window.updateCalculatorSections) {
+        updateCalculatorSections();
+    } else if (window.updateCITabState) {
+        // Минимально обновим CI таб, если функция переключения недоступна
+        updateCITabState();
     }
 });
+
+// Общий обработчик кнопки расчета внизу
+function handleCalculate() {
+    const resultsSection = document.getElementById('resultsSection');
+    const nacSelected = isNACSelected();
+    const ciSelected = isCISelected();
+
+    if (!nacSelected && !ciSelected) {
+        showToast('Выберите модуль для расчета', 'warning');
+        return;
+    }
+
+    // Если NAC выключен, а CI включен без устройств — не считаем
+    if (!nacSelected && ciSelected) {
+        const ciEnabled = window.isCIEnabled ? window.isCIEnabled() : false;
+        if (!ciEnabled) {
+            showToast('Добавьте хотя бы одно устройство для CI', 'warning');
+            return;
+        }
+    }
+
+    if (nacSelected && window.performHybridCalculation) {
+        performHybridCalculation();
+    } else if (ciSelected && window.calculateCIOnly) {
+        calculateCIOnly();
+    }
+
+    if (resultsSection) {
+        resultsSection.style.display = 'block';
+    }
+}
+
+window.handleCalculate = handleCalculate;

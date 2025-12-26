@@ -26,11 +26,11 @@
             
             <div class="module-grid">
                 <!-- Модуль NAC -->
-                <div class="module-card selected" id="nac-module" onclick="selectModule('nac')">
+                <div class="module-card" id="nac-module" onclick="selectModule('nac')">
                     <!-- Заголовок модуля -->
-                    <div class="module-header module-header-nac">
-                        <div class="module-icon module-icon-nac">🌐</div>
-                        <div class="module-info">
+                    <div class="module-header module-header-ci">
+                        <div class="module-icon module-icon-ci">🌐</div>
+                        <div class="module-info module-info-ci">
                             <h3>NAC</h3>
                             <p>Network Access Control</p>
                         </div>
@@ -39,24 +39,24 @@
                     <!-- Список функций -->
                     <div class="module-features">
                         <div class="module-feature">
-                            <span class="feature-check feature-check-active">✓</span>
-                            <span class="feature-text feature-text-active">Аутентификация устройств</span>
+                            <span class="feature-check">✓</span>
+                            <span class="feature-text">Аутентификация устройств</span>
                         </div>
                         <div class="module-feature">
-                            <span class="feature-check feature-check-active">✓</span>
-                            <span class="feature-text feature-text-active">Контроль доступа к сети</span>
+                            <span class="feature-check">✓</span>
+                            <span class="feature-text">Контроль доступа к сети</span>
                         </div>
                         <div class="module-feature">
-                            <span class="feature-check feature-check-active">✓</span>
-                            <span class="feature-text feature-text-active">RADIUS инфраструктура</span>
+                            <span class="feature-check">✓</span>
+                            <span class="feature-text">RADIUS инфраструктура</span>
                         </div>
                         <div class="module-feature">
-                            <span class="feature-check feature-check-active">✓</span>
-                            <span class="feature-text feature-text-active">Поддержка MAB, PEAP, EAP-TLS</span>
+                            <span class="feature-check">✓</span>
+                            <span class="feature-text">Поддержка MAB, PEAP, EAP-TLS</span>
                         </div>
                         
                         <!-- Кнопка -->
-                        <button class="module-button module-button-active">
+                        <button class="module-button" id="nac-module-button">
                             Настроить параметры
                         </button>
                     </div>
@@ -105,8 +105,8 @@
     <div class="main-container" id="calculator-section">
         <div class="calculator-card">
             <div class="tabs-content">
-                <!-- Основные параметры -->
-                <div id="basic-tab">
+                <!-- Основные параметры (NAC) -->
+                <div id="basic-tab" class="nac-only">
                     <div class="presets-grid">
                         <div class="preset-card" onclick="applyPreset('small')">
                             <div class="preset-icon">🏠</div>
@@ -160,8 +160,8 @@
                 </div>
             </div>
             
-            <!-- Дополнительные опции -->
-            <div class="additional-options">
+            <!-- Дополнительные опции (NAC) -->
+            <div class="additional-options nac-only">
                 <h3><span>🔧</span>Дополнительные опции</h3>
                 
                 
@@ -199,8 +199,8 @@
                 </div>
             </div>
             
-            <!-- Расширенные настройки -->
-            <div class="advanced-section">
+            <!-- Расширенные настройки (NAC) -->
+            <div class="advanced-section nac-only">
                 <div class="advanced-header" onclick="toggleAdvanced()">
                     <span class="expand-icon">▶</span>
                     <span>📊 Расширенные настройки</span>
@@ -290,13 +290,13 @@
                         </table>
                     </div>
                     
-                    <!-- Коэффициент запаса CI -->
+                    <!-- Запас производительности (в процентах) -->
                     <div class="form-field">
                         <label class="form-label">
-                            Коэффициент запаса CI
-                            <span class="tooltip" data-tooltip="Коэффициент запаса для расчета ресурсов Config Inspector">ⓘ</span>
+                            Запас производительности, %
+                            <span class="tooltip" data-tooltip="Дополнительный резерв для пиковых нагрузок и безопасного планирования. Увеличивает требования, чтобы сохранить стабильную работу при росте нагрузки и фоновых процессах.">ⓘ</span>
                         </label>
-                        <input type="number" class="form-input" id="ciMarginCoeff" value="1.2" step="0.1" min="1.0" max="3.0">
+                        <input type="number" class="form-input" id="ciMarginCoeff" value="20" step="5" min="0" max="200" placeholder="20">
                     </div>
                     
                     <!-- Информационная панель -->
@@ -320,7 +320,7 @@
             </div>
             
             <div class="calculate-section">
-                <button class="calculate-btn" onclick="performHybridCalculation(); document.getElementById('resultsSection').style.display='block';">
+                <button class="calculate-btn" onclick="handleCalculate()">
                     🚀 Рассчитать конфигурацию
                 </button>
             </div>
@@ -328,10 +328,7 @@
         
         <div class="results-section" style="display: none;" id="resultsSection">
             <div class="results-header">
-                <h2>
-                    <span class="pulse-indicator"></span>
-                    Результаты расчета
-                </h2>
+                <h2>Результаты расчета</h2>
                 <p class="results-subtitle">Оптимальные параметры для вашей инфраструктуры</p>
             </div>
             
@@ -382,23 +379,23 @@
                 <!-- Технические показатели -->
                 <div class="result-card">
                     <h3>⚙️ Технические показатели</h3>
-                    <div class="result-row">
+                    <div class="result-row nac-only">
                         <span class="result-label">Количество узлов</span>
                         <span class="result-value"><span id="hybridResultNodes">-</span> шт</span>
                     </div>
-                    <div class="result-row">
+                    <div class="result-row nac-only">
                         <span class="result-label">CPU на узел</span>
                         <span class="result-value"><span id="hybridNodeCpu">-</span> vCPU</span>
                     </div>
-                    <div class="result-row">
+                    <div class="result-row nac-only">
                         <span class="result-label">Оперативная память на узел</span>
                         <span class="result-value"><span id="hybridNodeMemory">-</span> GiB</span>
                     </div>
-                    <div class="result-row">
+                    <div class="result-row nac-only">
                         <span class="result-label">Количество подов NAC</span>
                         <span class="result-value" id="hybridPods">-</span>
                     </div>
-                    <div class="result-row">
+                    <div class="result-row nac-only">
                         <span class="result-label">Целевая нагрузка системы</span>
                         <span class="result-value"><span id="hybridTargetRps">-</span> req/s</span>
                     </div>

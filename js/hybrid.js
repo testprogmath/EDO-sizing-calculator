@@ -24,10 +24,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализируем превью и выполняем начальный расчет
     updatePreview();
     
-    // Устанавливаем NAC как дефолтную активную вкладку
-    switchInfoTab('nac');
-    
-    performHybridCalculation(); // Начальный расчет с MAB
+    // Если NAC модуль выбран, показываем NAC таб и делаем начальный расчет
+    if (window.isNACSelected && window.isNACSelected()) {
+        switchInfoTab('nac');
+        performHybridCalculation(); // Начальный расчет с MAB
+    }
 });
 
 function setupScenarioCards() {
