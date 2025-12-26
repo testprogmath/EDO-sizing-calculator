@@ -43,6 +43,15 @@ const CI_API_BASE_URL = 'http://127.0.0.1:8888';
 // Временно отключен из-за недоступности
 // const CI_API_FALLBACK_URL = 'http://sizing-calc.edo.dev.da.lan:8000';
 
+// Отображаемые названия для типов устройств (UI-лейбл != API-значение)
+const DEVICE_LABELS = {
+    'обощенное устройство': 'Обобщенное устройство'
+};
+
+function getDeviceLabel(apiType) {
+    return DEVICE_LABELS[apiType] || apiType;
+}
+
 // Функция для добавления устройства в таблицу
 function addDeviceRow(deviceType = null, deviceCount = null) {
     const tableBody = document.getElementById('deviceTableBody');
@@ -73,7 +82,7 @@ function addDeviceRow(deviceType = null, deviceCount = null) {
             <td>
                 <input type="text" readonly 
                        data-device-type="${selectedType}" 
-                       value="${selectedType}" 
+                       value="${getDeviceLabel(selectedType)}" 
                        class="device-name-input">
             </td>
             <td>
@@ -539,6 +548,13 @@ async function calculateCIOnly() {
         set('ciReportTimeSecondary', (reportTimeSecondary || 0).toFixed(2));
         set('ciCpuLoad', (cpuUsageMax || 0).toFixed(1));
         set('ciMemoryLoad', (memoryUsageMax || 0).toFixed(1));
+
+        // Обновляем бизнес-показатели в общей карточке (2 сервера: комплекс + СУБД)
+        // Для CI-only используем одинаковые значения для комплекса и СУБД
+        set('hybridServerCpu', (cpuUsageMax || 0).toFixed(1));
+        set('hybridServerMemory', (memoryUsageMax || 0).toFixed(1));
+        set('hybridDbCpu', (cpuUsageMax || 0).toFixed(1));
+        set('hybridDbMemory', (memoryUsageMax || 0).toFixed(1));
 
         // Переключаем таб на CI
         if (window.switchInfoTab) {

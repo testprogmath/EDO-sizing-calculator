@@ -1000,22 +1000,30 @@ function switchInfoTab(tabName) {
 // Функция для обновления состояния CI таба
 function updateCITabState() {
     const ciTab = document.getElementById('ciTab');
+    const nacTab = document.getElementById('nacTab');
     if (!ciTab) return;
-    
+
     const isCISelected = window.isCISelected && window.isCISelected();
-    
+    const isNACSelectedFlag = window.isNACSelected && window.isNACSelected();
+
+    // Управление доступностью CI таба
     if (isCISelected) {
-        // CI модуль выбран - делаем таб активным
         ciTab.classList.remove('disabled');
         ciTab.removeAttribute('title');
     } else {
-        // CI модуль не выбран - делаем таб неактивным
         ciTab.classList.add('disabled');
         ciTab.setAttribute('title', 'Для получения расчетов по модулю Config Inspector выберите его в списке модулей в верхней части страницы');
-        
-        // Если сейчас открыт CI таб, переключаемся на NAC
         if (ciTab.classList.contains('active')) {
             switchInfoTab('nac');
+        }
+    }
+
+    // Подсказка для NAC, когда выбраны оба модуля
+    if (nacTab) {
+        if (isNACSelectedFlag && isCISelected) {
+            nacTab.setAttribute('title', 'На этой вкладке показаны метрики только модуля NAC. Данные CI — во вкладке CI.');
+        } else {
+            nacTab.removeAttribute('title');
         }
     }
 }

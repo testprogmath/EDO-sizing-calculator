@@ -167,6 +167,8 @@ function updateCalculatorSections() {
     const ciSection = document.getElementById('ciSection');
     const nacOnlyBlocks = document.querySelectorAll('.nac-only');
     const nacTabBtn = document.getElementById('nacTab');
+    const dbTooltip = document.getElementById('dbSectionTooltip');
+    const ciOnlyBlocks = document.querySelectorAll('.ci-only');
     
     if (isCISelected()) {
         ciSection.style.display = 'block';
@@ -186,6 +188,19 @@ function updateCalculatorSections() {
     });
     if (nacTabBtn) {
         nacTabBtn.style.display = nacVisible ? '' : 'none';
+    }
+    // Показываем CI-only карточки, только когда выбран CI без NAC
+    const showCiOnly = isCISelected() && !nacVisible;
+    ciOnlyBlocks.forEach(el => {
+        el.style.display = showCiOnly ? '' : 'none';
+    });
+    // Подсказка у "Сервер СУБД:" — показываем, если выбран CI (в любом сочетании)
+    if (dbTooltip) {
+        if (isCISelected()) {
+            dbTooltip.style.display = 'inline-block';
+        } else {
+            dbTooltip.style.display = 'none';
+        }
     }
     // Если NAC не выбран, переключаемся на CI таб
     if (!nacVisible && isCISelected() && window.switchInfoTab) {
