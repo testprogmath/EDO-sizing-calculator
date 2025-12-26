@@ -39,9 +39,8 @@ function getNumber(obj, idx, label) {
 }
 
 // API Configuration
-const CI_API_BASE_URL = 'http://127.0.0.1:8888';
-// Временно отключен из-за недоступности
-// const CI_API_FALLBACK_URL = 'http://sizing-calc.edo.dev.da.lan:8000';
+const CI_API_BASE_URL = 'http://10.116.41.99:8000';
+const CI_API_FALLBACK_URL = 'http://sizing-calc.edo.dev.da.lan:8000';
 
 // Отображаемые названия для типов устройств (UI-лейбл != API-значение)
 const DEVICE_LABELS = {
@@ -220,53 +219,71 @@ async function calculateCIResources() {
     
     try {
         // Пробуем основной URL
-        const url = `${CI_API_BASE_URL}/calculator/table`;
-        console.log('Sending request to:', url);
-        
-        let response = await fetchWithTimeout(url, {
+        const primaryUrl = `${CI_API_BASE_URL}/calculator/table`;
+        console.log('Sending request to:', primaryUrl);
+
+        const options = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
             body: JSON.stringify(requestData)
-        }, 5000);
-        
-        if (!response.ok) {
-            // Пытаемся получить детали ошибки из ответа
-            let errorDetail = `HTTP ${response.status}`;
-            try {
-                const errorData = await response.json();
-                errorDetail = errorData.detail || errorData.message || errorDetail;
-                console.error('Server error response:', errorData);
-            } catch (e) {
-                // Если не удалось распарсить JSON ответ
-                console.error('Could not parse error response');
+        };
+
+        let response;
+        let lastError;
+        try {
+            response = await fetchWithTimeout(primaryUrl, options, 7000);
+            if (!response.ok) {
+                let errorDetail = `HTTP ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorDetail = errorData.detail || errorData.message || errorDetail;
+                    console.error('Server error response (primary):', errorData);
+                } catch (_) {}
+                throw new Error(errorDetail);
             }
-            throw new Error(errorDetail);
+        } catch (e1) {
+            lastError = e1;
+            // Пытаемся фоллбэк URL
+            const fallbackUrl = `${CI_API_FALLBACK_URL}/calculator/table`;
+            console.warn('Primary CI API failed, trying fallback:', fallbackUrl, '\nReason:', e1?.message || e1);
+            try {
+                response = await fetchWithTimeout(fallbackUrl, options, 7000);
+                if (!response.ok) {
+                    let errorDetail = `HTTP ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetail = errorData.detail || errorData.message || errorDetail;
+                        console.error('Server error response (fallback):', errorData);
+                    } catch (_) {}
+                    throw new Error(errorDetail);
+                }
+            } catch (e2) {
+                // Обе попытки не удались
+                const hints = `Проверьте доступность: ${CI_API_BASE_URL} и ${CI_API_FALLBACK_URL}`;
+                let msg = 'CI API недоступен. ' + hints;
+                const em1 = (lastError && lastError.message) || '';
+                const em2 = (e2 && e2.message) || '';
+                if (em1 || em2) {
+                    msg += ` (ошибки: primary: ${em1 || 'n/a'}, fallback: ${em2 || 'n/a'})`;
+                }
+                showCIErrorNotification(msg);
+                console.error('CI API both attempts failed:', { primaryError: lastError, fallbackError: e2 });
+                return null;
+            }
         }
-        
-        let data = await response.json();
+
+        // Успешный ответ (primary или fallback)
+        const data = await response.json();
         return processCIResponse(data);
-        
+
     } catch (error) {
-        // Определяем тип ошибки для более точной диагностики
-        let errorMessage = 'CI API недоступен';
-        
-        if (error.message.includes('Failed to fetch')) {
-            errorMessage = 'Не удается подключиться к CI API (проверьте CORS и что сервер запущен)';
-        } else if (error.message.includes('HTTP')) {
-            errorMessage = `CI API ошибка: ${error.message}`;
-        } else {
-            errorMessage = `Ошибка: ${error.message}`;
-        }
-        
+        // Непредвиденная ошибка
+        const msg = `CI API ошибка: ${error.message}. Проверьте ${CI_API_BASE_URL} и ${CI_API_FALLBACK_URL}`;
         console.error('CI API Error:', error);
-        console.log('Убедитесь, что бекенд запущен на http://127.0.0.1:8888');
-        
-        // Показываем уведомление пользователю с деталями
-        showCIErrorNotification(errorMessage);
-        
+        showCIErrorNotification(msg);
         return null;
     }
 }
@@ -290,7 +307,7 @@ function showCIErrorNotification(errorMessage = 'CI API недоступен') {
         <strong>⚠️ Ошибка CI API</strong><br>
         ${errorMessage}<br>
         <small style="opacity: 0.9; margin-top: 8px; display: block;">
-            Убедитесь, что бекенд запущен и настроен CORS для http://127.0.0.1:8888
+            Убедитесь, что сервис доступен по ${CI_API_BASE_URL} или ${CI_API_FALLBACK_URL}
         </small>
     `;
     document.body.appendChild(notification);
