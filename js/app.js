@@ -169,6 +169,7 @@ function updateCalculatorSections() {
     const nacTabBtn = document.getElementById('nacTab');
     const dbTooltip = document.getElementById('dbSectionTooltip');
     const ciOnlyBlocks = document.querySelectorAll('.ci-only');
+    const hideForCiRows = document.querySelectorAll('.hide-for-ci');
     
     if (isCISelected()) {
         ciSection.style.display = 'block';
@@ -193,6 +194,11 @@ function updateCalculatorSections() {
     const showCiOnly = isCISelected() && !nacVisible;
     ciOnlyBlocks.forEach(el => {
         el.style.display = showCiOnly ? '' : 'none';
+    });
+
+    // Прячем строки "Диск" при CI-only
+    hideForCiRows.forEach(el => {
+        el.style.display = showCiOnly ? 'none' : '';
     });
     // Подсказка у "Сервер СУБД:" — показываем, если выбран CI (в любом сочетании)
     if (dbTooltip) {

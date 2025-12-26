@@ -625,8 +625,10 @@ function exportToPDF() {
             pageSize: 'A4',
             pageMargins: [40, 60, 40, 60],
             content: [
-                { text: 'Требования к инфраструктуре ПК «Efros DO» (CI)', style: 'header', alignment: 'center', margin: [0, 0, 0, 10] },
-                { text: `Устройств под мониторингом: ${devices} шт`, margin: [0, 0, 0, 10] },
+                { svg: `<svg width="180" height="52" viewBox=\"0 0 355 104\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M33.4834 0H51.0656C51.581 0 51.9989 0.427668 51.9989 0.955224C51.9989 1.0348 51.9892 1.11406 51.97 1.19117L49.2999 11.9117C48.246 16.1432 44.5225 19.1045 40.2558 19.1045H29.2011C28.6856 19.1045 28.2678 18.6768 28.2678 18.1493C28.2678 18.0697 28.2775 17.9904 28.2967 17.9133L32.579 0.71928C32.6844 0.29613 33.0568 0 33.4834 0Z\" fill=\"#24A7B3\"/>\n                </svg>`, alignment: 'center', margin: [0, 0, 0, 20] },
+                { text: 'Требования к инфраструктуре ПК «Efros DO»', style: 'header', alignment: 'center', margin: [0, 0, 0, 10] },
+                { text: 'Модуль Config Inspector (CI)', style: 'subheader', alignment: 'center', margin: [0, 0, 0, 10] },
+                { text: `Устройств под мониторингом: ${devices} шт`, style: 'normal', margin: [0, 0, 0, 10] },
                 { text: 'Бизнес-показатели', style: 'subheader', margin: [0, 0, 0, 8] },
                 {
                     table: {
@@ -645,11 +647,12 @@ function exportToPDF() {
                 { ul: [
                     `Время отчетов (первичных): ${rpt1} ч`,
                     `Время отчетов (повторных): ${rpt2} ч`
-                ]}
+                ], style: 'normal' }
             ],
             styles: {
                 header: { fontSize: 16, bold: true },
-                subheader: { fontSize: 12, bold: true }
+                subheader: { fontSize: 12, bold: true },
+                normal: { fontSize: 10 }
             }
         };
 
