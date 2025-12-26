@@ -5,6 +5,39 @@
 let ciDevices = [];
 let lastCIResults = null;
 
+// Helpers for tolerant key lookups in CI API responses with Russian labels
+function normalizeKeyLabel(label) {
+    if (label == null) return '';
+    return String(label)
+        .toLowerCase()
+        .replace(/[ё]/g, 'е')
+        .replace(/[\s\u00A0\u202F\u2009]+/g, '') // all spaces incl. NBSP/narrow
+        .replace(/[.,;:()"'`«»\-–—]/g, '') // punctuation and dashes
+        .replace(/№/g, 'no'); // normalize numero sign
+}
+
+function buildKeyIndex(obj) {
+    const idx = {};
+    Object.keys(obj || {}).forEach((k) => {
+        idx[normalizeKeyLabel(k)] = k;
+    });
+    return idx;
+}
+
+function getField(obj, idx, label) {
+    if (!obj) return undefined;
+    if (label in obj) return obj[label];
+    const normalized = normalizeKeyLabel(label);
+    const orig = idx[normalized];
+    return orig !== undefined ? obj[orig] : undefined;
+}
+
+function getNumber(obj, idx, label) {
+    const v = getField(obj, idx, label);
+    const n = typeof v === 'string' ? parseFloat(v.replace(',', '.')) : Number(v);
+    return Number.isFinite(n) ? n : null;
+}
+
 // API Configuration
 const CI_API_BASE_URL = 'http://127.0.0.1:8888';
 // Временно отключен из-за недоступности
@@ -266,10 +299,7 @@ function showCIWarningNotification(warningMessage = 'Нет данных о пр
     `;
     notification.innerHTML = `
         <strong>⚠️ Внимание</strong><br>
-        ${warningMessage}<br>
-        <small style="opacity: 0.8; margin-top: 8px; display: block;">
-            Рекомендуется использовать устройства с суффиксом (FA), (NA), (ICC) или (VC)
-        </small>
+        ${warningMessage}
     `;
     document.body.appendChild(notification);
     
@@ -309,7 +339,11 @@ function processCIResponse(data) {
     }
     
     // Ищем строку "Итого" с устройством "-" - она уже содержит данные с коэффициентом запаса
-    const totalRow = parsedData.find(item => item['Устройства'] === '-');
+    // Строим индекс ключей для каждого объекта, чтобы устойчиво извлекать поля
+    const rowsWithIndex = parsedData.map((item) => ({ item, idx: buildKeyIndex(item) }));
+    const totalRowEntry = rowsWithIndex.find(({ item, idx }) => getField(item, idx, 'Устройства') === '-');
+    const totalRow = totalRowEntry ? totalRowEntry.item : null;
+    const totalIdx = totalRowEntry ? totalRowEntry.idx : {};
     
     if (!totalRow) {
         console.error('Не найдена строка "Итого" в ответе CI API');
@@ -318,37 +352,38 @@ function processCIResponse(data) {
     
     console.log('Found CI Total Row:', totalRow);
     
-    // Используем данные из строки "Итого"
-    const totalDevices = parseFloat(totalRow['Количество устройств']) || 0;
-    const totalCpuUsageAvg = parseFloat(totalRow['CPU Usage, avg (%)']) || 0;
-    const totalCpuUsageMax = parseFloat(totalRow['CPU Usage, max (%)']) || 0;
-    const totalMemUsageAvg = parseFloat(totalRow['Mem Usage (Gb), avg']) || 0;
-    const totalMemUsageMax = parseFloat(totalRow['Mem Usage (Gb), max']) || 0;
-    const totalReportTimePrimary = parseFloat(totalRow['Длительность запроса отчётов (Первичная)']) || 0;
-    const totalReportTimeSecondary = parseFloat(totalRow['Длительность запроса отчётов (Повторная)']) || 0;
+    // Используем данные из строки "Итого" (с учетом возможных вариаций ключей)
+    const totalDevices = getNumber(totalRow, totalIdx, 'Количество устройств') ?? 0;
+    const totalCpuUsageAvg = getNumber(totalRow, totalIdx, 'ЦПУ, срдн., № ядер') ?? 0;
+    const totalCpuUsageMax = getNumber(totalRow, totalIdx, 'ЦПУ, макс., № ядер') ?? 0;
+    const totalMemUsageAvg = getNumber(totalRow, totalIdx, 'Память, срдн., Гб') ?? 0;
+    const totalMemUsageMax = getNumber(totalRow, totalIdx, 'Память, макс., Гб') ?? 0;
+    const totalReportTimePrimary = getNumber(totalRow, totalIdx, 'Длительность запроса отчётов (Первичная)') ?? 0;
+    const totalReportTimeSecondary = getNumber(totalRow, totalIdx, 'Длительность запроса отчётов (Повторная)') ?? 0;
     
     // Проверяем, есть ли валидные данные
     const validDataFound = totalCpuUsageAvg > 0 || totalCpuUsageMax > 0 || totalMemUsageAvg > 0 || totalMemUsageMax > 0;
     
     // Для отладки выводим информацию о каждом устройстве (кроме итого)
     let devicesWithoutData = [];
-    parsedData.forEach(item => {
+    rowsWithIndex.forEach(({ item, idx }) => {
         // Пропускаем строку итого
-        if (item['Устройства'] === '-' || item['Устройства'] === null) {
+        const devName = getField(item, idx, 'Устройства');
+        if (devName === '-' || devName === null) {
             return;
         }
         
         // Для отладки выводим информацию о каждом устройстве
-        const deviceCount = parseFloat(item['Количество устройств']) || 0;
-        const deviceType = item['Устройства'];
+        const deviceCount = getNumber(item, idx, 'Количество устройств') ?? 0;
+        const deviceType = devName;
         
         // Проверяем, есть ли валидные данные (не null)
-        const cpuAvg = item['CPU Usage, avg (%)'];
-        const cpuMax = item['CPU Usage, max (%)'];
-        const memAvg = item['Mem Usage (Gb), avg'];
-        const memMax = item['Mem Usage (Gb), max'];
+        const cpuAvg = getNumber(item, idx, 'ЦПУ, срдн., № ядер');
+        const cpuMax = getNumber(item, idx, 'ЦПУ, макс., № ядер');
+        const memAvg = getNumber(item, idx, 'Память, срдн., Гб');
+        const memMax = getNumber(item, idx, 'Память, макс., Гб');
         
-        const hasValidPerformanceData = cpuAvg !== null || cpuMax !== null || memAvg !== null || memMax !== null;
+        const hasValidPerformanceData = [cpuAvg, cpuMax, memAvg, memMax].some(Number.isFinite);
         
         if (!hasValidPerformanceData && deviceCount > 0) {
             // Устройство есть, но данных производительности нет
@@ -359,23 +394,22 @@ function processCIResponse(data) {
             type: deviceType,
             count: deviceCount,
             hasPerformanceData: hasValidPerformanceData,
-            cpuAvg: cpuAvg + ' vCPU',
-            cpuMax: cpuMax + ' vCPU', 
-            memAvg: memAvg + ' GB',
-            memMax: memMax + ' GB',
-            reportPrimary: item['Длительность запроса отчётов (Первичная)'] + ' ч',
-            reportSecondary: item['Длительность запроса отчётов (Повторная)'] + ' ч'
+            cpuAvg: Number.isFinite(cpuAvg) ? (cpuAvg + ' vCPU') : '-',
+            cpuMax: Number.isFinite(cpuMax) ? (cpuMax + ' vCPU') : '-', 
+            memAvg: Number.isFinite(memAvg) ? (memAvg + ' GB') : '-',
+            memMax: Number.isFinite(memMax) ? (memMax + ' GB') : '-',
+            reportPrimary: (getNumber(item, idx, 'Длительность запроса отчётов (Первичная)') ?? '-') + ' ч',
+            reportSecondary: (getNumber(item, idx, 'Длительность запроса отчётов (Повторная)') ?? '-') + ' ч'
         });
     });
     
     // Если нет валидных данных производительности, показываем предупреждение
     if (!validDataFound && totalDevices > 0) {
         console.warn('⚠️ CI API вернул устройства без данных производительности:', devicesWithoutData);
-        console.log('Попробуйте использовать конкретные типы устройств вместо "обощенное устройство"');
         
         // Показываем уведомление пользователю
         const deviceList = devicesWithoutData.join(', ');
-        showCIWarningNotification(`Устройства без данных производительности: ${deviceList}. Попробуйте использовать другие типы устройств.`);
+        showCIWarningNotification(`Устройства без данных производительности: ${deviceList}.`);
     } else if (devicesWithoutData.length > 0 && validDataFound) {
         // Есть как устройства с данными, так и без данных
         console.warn('⚠️ Некоторые устройства не имеют данных производительности:', devicesWithoutData);
@@ -402,7 +436,7 @@ function processCIResponse(data) {
     console.log('Total Devices:', totalDevices);
     console.log('Total CPU Max:', totalCpuUsageMax, 'vCPU (with coefficient)');
     console.log('Total Memory Max:', totalMemUsageMax, 'GB (with coefficient)');
-    console.log('Coefficient applied:', totalRow['Коэффициент безопасного использования']);
+    console.log('Coefficient applied:', getField(totalRow, totalIdx, 'Коэффициент безопасного использования'));
     console.log('=============================================');
     lastCIResults = result;
     
