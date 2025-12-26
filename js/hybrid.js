@@ -598,7 +598,12 @@ function displayHybridResults(results, ciData = null) {
 }
 
 function exportToPDF() {
-    if (!window.lastCalculationResults) {
+    const isNacSelected = window.isNACSelected && window.isNACSelected();
+    const isCIEnabled = window.isCISelected && window.isCISelected();
+    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
+
+    // Разрешаем экспорт при CI-only даже без lastCalculationResults
+    if (!window.lastCalculationResults && !(isCIEnabled && ciData && !isNacSelected)) {
         if (window.showToast) {
             window.showToast('Сначала выполните расчет', 'warning');
         } else {
@@ -607,13 +612,55 @@ function exportToPDF() {
         return;
     }
 
+    // Ветка CI-only: упрощенный PDF
+    if (!isNacSelected && isCIEnabled && ciData) {
+        const devices = (ciData.totalDevices || 0).toLocaleString('ru-RU');
+        const cpu = (ciData.cpuUsageMax || 0).toFixed(1);
+        const rawMem = (ciData.memoryUsageMax || 0);
+        const mem = (window.roundToCIStandardMemorySize ? window.roundToCIStandardMemorySize(rawMem) : rawMem);
+        const rpt1 = (ciData.reportTimePrimary || 0).toFixed(2);
+        const rpt2 = (ciData.reportTimeSecondary || 0).toFixed(2);
+
+        const docDefinition = {
+            pageSize: 'A4',
+            pageMargins: [40, 60, 40, 60],
+            content: [
+                { text: 'Требования к инфраструктуре ПК «Efros DO» (CI)', style: 'header', alignment: 'center', margin: [0, 0, 0, 10] },
+                { text: `Устройств под мониторингом: ${devices} шт`, margin: [0, 0, 0, 10] },
+                { text: 'Бизнес-показатели', style: 'subheader', margin: [0, 0, 0, 8] },
+                {
+                    table: {
+                        headerRows: 1,
+                        widths: ['40%', '30%', '30%'],
+                        body: [
+                            ['Сервер', 'Процессор', 'Оперативная память'],
+                            ['Комплекс CI', `${cpu} vCPU`, `${mem} ГБ`],
+                            ['Сервер СУБД', `${cpu} vCPU`, `${mem} ГБ`]
+                        ]
+                    },
+                    layout: 'lightHorizontalLines',
+                    margin: [0, 0, 0, 12]
+                },
+                { text: 'Показатели CI', style: 'subheader', margin: [0, 0, 0, 8] },
+                { ul: [
+                    `Время отчетов (первичных): ${rpt1} ч`,
+                    `Время отчетов (повторных): ${rpt2} ч`
+                ]}
+            ],
+            styles: {
+                header: { fontSize: 16, bold: true },
+                subheader: { fontSize: 12, bold: true }
+            }
+        };
+
+        const filename = `Требования_Efros_CI_${devices}_устройств.pdf`;
+        pdfMake.createPdf(docDefinition).download(filename);
+        return;
+    }
+
     const results = window.lastCalculationResults;
     const inputs = getHybridInputValues();
     const deviceCount = inputs.devices.toLocaleString();
-    
-    // Получаем данные CI если модуль активен
-    const isCIEnabled = window.isCISelected && window.isCISelected();
-    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
     
     const authMethodRu = {
         'MAB': 'MAC-адрес',
@@ -1010,9 +1057,11 @@ function updateCITabState() {
     if (isCISelected) {
         ciTab.classList.remove('disabled');
         ciTab.removeAttribute('title');
+        ciTab.removeAttribute('data-hint');
     } else {
         ciTab.classList.add('disabled');
-        ciTab.setAttribute('title', 'Для получения расчетов по модулю Config Inspector выберите его в списке модулей в верхней части страницы');
+        ciTab.removeAttribute('title');
+        ciTab.setAttribute('data-hint', 'Для получения расчетов по модулю Config Inspector выберите его в списке модулей в верхней части страницы');
         if (ciTab.classList.contains('active')) {
             switchInfoTab('nac');
         }
@@ -1021,9 +1070,11 @@ function updateCITabState() {
     // Подсказка для NAC, когда выбраны оба модуля
     if (nacTab) {
         if (isNACSelectedFlag && isCISelected) {
-            nacTab.setAttribute('title', 'На этой вкладке показаны метрики только модуля NAC. Данные CI — во вкладке CI.');
+            nacTab.removeAttribute('title');
+            nacTab.setAttribute('data-hint', 'На этой вкладке показаны метрики только модуля NAC. Данные CI — во вкладке CI.');
         } else {
             nacTab.removeAttribute('title');
+            nacTab.removeAttribute('data-hint');
         }
     }
 }

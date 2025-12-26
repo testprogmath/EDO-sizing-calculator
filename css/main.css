@@ -1214,36 +1214,36 @@ body {
 }
 
 /* Tooltip для неактивного таба */
-.tab-button[title].disabled:hover::after {
-    content: attr(title);
+.tab-button.disabled[data-hint]:hover::after {
+    content: attr(data-hint);
     position: absolute;
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background: #1a1a1a;
+    background: #1f1f1f; /* полностью непрозрачный фон */
     color: white;
     padding: 10px 14px;
-    border-radius: 6px;
+    border-radius: 0;
     font-size: 0.8em;
     white-space: nowrap;
     z-index: 1000;
     margin-bottom: 5px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     border: 1px solid #444;
 }
 
-.tab-button[title].disabled:hover::before {
+.tab-button.disabled[data-hint]:hover::before {
     content: '';
     position: absolute;
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: #1a1a1a;
+    border-top-color: #1f1f1f;
     z-index: 1000;
 }
 
-.tab-button[title].disabled {
+.tab-button.disabled[data-hint] {
     position: relative;
 }
 

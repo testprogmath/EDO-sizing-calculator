@@ -297,7 +297,12 @@ function updateDatabaseRequirements(dbReq) {
 
 
 function exportToCSV() {
-    if (!window.lastCalculationResults) {
+    const isNacSelected = window.isNACSelected && window.isNACSelected();
+    const isCIEnabled = window.isCISelected && window.isCISelected();
+    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
+
+    // Разрешаем экспорт при CI-only даже без lastCalculationResults
+    if (!window.lastCalculationResults && !(isCIEnabled && ciData && !isNacSelected)) {
         if (window.showToast) {
             window.showToast('Сначала выполните расчет', 'warning');
         } else {
@@ -305,15 +310,42 @@ function exportToCSV() {
         }
         return;
     }
-    
+
+    // Ветка CI-only: упрощенный CSV
+    if (!isNacSelected && isCIEnabled && ciData) {
+        let csv = 'Параметр,Значение\n';
+        csv += 'Конфигурация,CI Only\n';
+        csv += '\nБизнес-показатели\n';
+        csv += 'Количество серверов,2 (Комплекс + СУБД)\n';
+        const memRounded = (window.roundToCIStandardMemorySize ? window.roundToCIStandardMemorySize(ciData.memoryUsageMax || 0) : (ciData.memoryUsageMax || 0));
+        csv += 'CPU Комплекс (vCPU),' + (ciData.cpuUsageMax || 0).toFixed(1) + '\n';
+        csv += 'Память Комплекс (ГБ),' + memRounded + '\n';
+        csv += 'CPU СУБД (vCPU),' + (ciData.cpuUsageMax || 0).toFixed(1) + '\n';
+        csv += 'Память СУБД (ГБ),' + memRounded + '\n';
+        csv += '\nПоказатели CI\n';
+        csv += 'Устройств под управлением,' + (ciData.totalDevices || 0) + ' шт\n';
+        csv += 'Время отчетов (первичных),' + (ciData.reportTimePrimary || 0).toFixed(2) + ' ч\n';
+        csv += 'Время отчетов (повторных),' + (ciData.reportTimeSecondary || 0).toFixed(2) + ' ч\n';
+        
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'ci_calculator_results.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+    }
+
     const results = window.lastCalculationResults;
     
     // Получаем входные параметры для добавления дополнительных опций
     const inputs = getHybridInputValues ? getHybridInputValues() : {};
     
     // Получаем данные CI если модуль активен
-    const isCIEnabled = window.isCISelected && window.isCISelected();
-    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
+    // ciData уже получены выше
     
     // Формируем CSV контент
     let csv = 'Параметр,Значение\n';

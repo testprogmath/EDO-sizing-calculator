@@ -218,18 +218,44 @@ function updateCalculatorSections() {
 
 // Функция копирования результатов в буфер обмена
 function copyToClipboard() {
-    if (!window.lastCalculationResults) {
+    const isNacSelected = window.isNACSelected && window.isNACSelected();
+    const isCIEnabled = window.isCISelected && window.isCISelected();
+    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
+
+    if (!window.lastCalculationResults && !(isCIEnabled && ciData && !isNacSelected)) {
         alert('Сначала выполните расчет');
         return;
     }
     
-    const results = window.lastCalculationResults;
+    const results = window.lastCalculationResults || {};
     const inputs = getHybridInputValues ? getHybridInputValues() : {};
     
-    // Получаем данные CI если модуль активен
-    const isCIEnabled = window.isCISelected && window.isCISelected();
-    const ciData = isCIEnabled ? window.getCIData && window.getCIData() : null;
-    
+    // Ветка CI-only
+    if (!isNacSelected && isCIEnabled && ciData) {
+        let t = 'Результаты расчета (Config Inspector)\n';
+        t += '==========================================\n\n';
+        t += 'БИЗНЕС-ПОКАЗАТЕЛИ (оценка):\n';
+        t += '• Количество серверов: 2 шт (комплекс + СУБД)\n';
+        const memRounded = (window.roundToCIStandardMemorySize ? window.roundToCIStandardMemorySize(ciData.memoryUsageMax || 0) : (ciData.memoryUsageMax || 0));
+        t += '• Комплекс CI: ' + (ciData.cpuUsageMax || 0).toFixed(1) + ' vCPU, ' + memRounded + ' ГБ\n';
+        t += '• Сервер СУБД: ' + (ciData.cpuUsageMax || 0).toFixed(1) + ' vCPU, ' + memRounded + ' ГБ\n\n';
+        t += 'ПОКАЗАТЕЛИ CI:\n';
+        t += '• Устройства под управлением: ' + (ciData.totalDevices || 0) + ' шт\n';
+        t += '• Время отчетов (первичных): ' + (ciData.reportTimePrimary || 0).toFixed(2) + ' ч\n';
+        t += '• Время отчетов (повторных): ' + (ciData.reportTimeSecondary || 0).toFixed(2) + ' ч\n';
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(t).then(function() {
+                showToast('Результаты скопированы в буфер обмена');
+            }).catch(function(err) {
+                fallbackCopyToClipboard(t);
+            });
+        } else {
+            fallbackCopyToClipboard(t);
+        }
+        return;
+    }
+
     let text = 'Результаты расчета калькулятора Efros NAC\n';
     text += '==========================================\n\n';
     text += 'Конфигурация:\n';
@@ -373,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Общий обработчик кнопки расчета внизу
-function handleCalculate() {
+async function handleCalculate() {
     const resultsSection = document.getElementById('resultsSection');
     const nacSelected = isNACSelected();
     const ciSelected = isCISelected();
@@ -392,14 +418,20 @@ function handleCalculate() {
         }
     }
 
-    if (nacSelected && window.performHybridCalculation) {
-        performHybridCalculation();
-    } else if (ciSelected && window.calculateCIOnly) {
-        calculateCIOnly();
-    }
-
-    if (resultsSection) {
-        resultsSection.style.display = 'block';
+    try {
+        if (nacSelected && window.performHybridCalculation) {
+            await performHybridCalculation();
+        } else if (ciSelected && window.calculateCIOnly) {
+            await calculateCIOnly();
+        }
+    } finally {
+        if (resultsSection) {
+            resultsSection.style.display = 'block';
+            // Небольшая задержка, чтобы DOM отрисовался, затем скролл к результатам
+            setTimeout(() => {
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+        }
     }
 }
 

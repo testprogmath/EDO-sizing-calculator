@@ -38,6 +38,15 @@ function getNumber(obj, idx, label) {
     return Number.isFinite(n) ? n : null;
 }
 
+// CI-only: округление памяти до стандартных размеров (24, 32, 48, 64, 128, 256, 512)
+function roundToCIStandardMemorySize(memoryGiB) {
+    const sizes = [24, 32, 48, 64, 128, 256, 512];
+    for (const s of sizes) {
+        if (memoryGiB <= s) return s;
+    }
+    return Math.ceil(memoryGiB / 64) * 64;
+}
+
 // API Configuration
 const CI_API_BASE_URL = 'http://10.116.41.99:8000';
 const CI_API_FALLBACK_URL = 'http://sizing-calc.edo.dev.da.lan:8000';
@@ -568,10 +577,11 @@ async function calculateCIOnly() {
 
         // Обновляем бизнес-показатели в общей карточке (2 сервера: комплекс + СУБД)
         // Для CI-only используем одинаковые значения для комплекса и СУБД
+        const roundedMem = roundToCIStandardMemorySize(memoryUsageMax || 0);
         set('hybridServerCpu', (cpuUsageMax || 0).toFixed(1));
-        set('hybridServerMemory', (memoryUsageMax || 0).toFixed(1));
+        set('hybridServerMemory', roundedMem);
         set('hybridDbCpu', (cpuUsageMax || 0).toFixed(1));
-        set('hybridDbMemory', (memoryUsageMax || 0).toFixed(1));
+        set('hybridDbMemory', roundedMem);
 
         // Переключаем таб на CI
         if (window.switchInfoTab) {
@@ -583,3 +593,4 @@ async function calculateCIOnly() {
 }
 
 window.calculateCIOnly = calculateCIOnly;
+window.roundToCIStandardMemorySize = roundToCIStandardMemorySize;
