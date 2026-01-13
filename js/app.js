@@ -280,6 +280,8 @@ function copyToClipboard() {
     }
     
     text += '\nБИЗНЕС-ПОКАЗАТЕЛИ:\n';
+    text += '• Система (кластер): ' + (results.inputs && results.inputs.nodeCount ? results.inputs.nodeCount : 'N/A') + ' узлов\n';
+    text += '• СУБД: 1 сервер\n';
     text += '• Минимальное количество подов: ' + results.minPods + '\n';
     text += '• Рекомендуемое количество подов: ' + results.recommendedPods + '\n';
     text += '• CPU на ноду: ' + results.nodeCpu + ' vCPU\n';

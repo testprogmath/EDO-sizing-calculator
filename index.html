@@ -135,6 +135,16 @@
                         </div>
                     </div>
                     
+                    <!-- Версия комплекса (плейсхолдер, неактивный) -->
+                    <div class="form-grid" style="margin-top: -10px;">
+                        <div class="form-field">
+                            <label class="form-label">Версия комплекса</label>
+                            <select class="form-select" id="nacVersion" disabled>
+                                <option value="2.13_cert" selected>2.13_cert</option>
+                            </select>
+                        </div>
+                    </div>
+                    
                     <div class="form-grid">
                         <div class="form-field">
                             <label class="form-label">
@@ -246,7 +256,7 @@
                     <div class="device-controls">
                         <div class="quick-add-header">
                             <h4>Быстрый ввод</h4>
-                            <span class="quick-add-subtitle">Добавляйте строки и отправляйте</span>
+                            <span class="quick-add-subtitle">Выберите устройство из списка и нажмите «Добавить»</span>
                         </div>
                         <div class="quick-add-row">
                             <select id="deviceTypeSelector" class="ci-device-selector">
@@ -341,12 +351,8 @@
                 <div class="result-card">
                     <h3>💼 Бизнес-показатели</h3>
                     <div class="result-row">
-                        <span class="result-label">Количество серверов</span>
-                        <span class="result-value">2 шт (комплекс + СУБД)</span>
-                    </div>
-                    <div class="result-row nac-only">
-                        <span class="result-label">Количество серверов</span>
-                        <span class="result-value">2 шт (комплекс + СУБД)</span>
+                        <span class="result-label">Система</span>
+                        <span class="result-value">кластер из <span id="businessSystemNodes">-</span> узлов</span>
                     </div>
                     <div class="result-section-divider">
                         <div class="result-section-title">Сервер комплекса:</div>
