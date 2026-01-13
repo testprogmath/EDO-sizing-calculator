@@ -20,6 +20,14 @@ const COEFFICIENTS = {
         memPeakPerRpsMiB: 70.0,           // Пиковое потребление памяти (MiB) на 1 RPS/pod
         baselineNodeCpuP95: 4.0           // Базовая нагрузка на ноду CPU
     },
+
+    'EAP-TEAP': {
+        nominalRpsPerPod: 7.4,            // Комфортный RPS на один pod (без OCSP)
+        cpuPeakPerRps: 0.23,              // Пиковое потребление CPU (core) на 1 RPS/pod
+        memPeakPerRpsMiB: 85.0,           // Пиковое потребление памяти (MiB) на 1 RPS/pod
+        ocspOverheadPct: 39.0,            // Надбавка OCSP, %
+        baselineNodeCpuP95: 5.0           // Базовая нагрузка на ноду CPU
+    },
     
     common: {
         safetyFactor: 1.25,               // Запас между peak и limit по ресурсам pod
@@ -65,6 +73,14 @@ const PROFILES = {
         { maxDevices: 12000, name: 'C: 10k–12k', minPods: 6, nodeCpu: 16, nodeMemory: 48 },
         { maxDevices: 15000, name: 'D: 12k–15k', minPods: 6, nodeCpu: 16, nodeMemory: 64 },
         { maxDevices: 20000, name: 'E: 15k–20k', minPods: 8, nodeCpu: 24, nodeMemory: 48 },
+    ],
+
+    'EAP-TEAP': [
+        { maxDevices: 5000, name: 'A: до 5k устройств', minPods: 6, nodeCpu: 12, nodeMemory: 24 },
+        { maxDevices: 10000, name: 'B: 5k–10k', minPods: 6, nodeCpu: 16, nodeMemory: 32 },
+        { maxDevices: 12000, name: 'C: 10k–12k', minPods: 6, nodeCpu: 16, nodeMemory: 48 },
+        { maxDevices: 15000, name: 'D: 12k–15k', minPods: 6, nodeCpu: 24, nodeMemory: 48 },
+        { maxDevices: 20000, name: 'E: 15k–20k', minPods: 6, nodeCpu: 24, nodeMemory: 64 },
     ]
 };
 
@@ -127,7 +143,19 @@ function getNodeMemorySize(devices, calculatedMemory, authMethod) {
             return Math.max(64, calculatedMemory);
         }
     }
-    
+
+    if (authMethod === 'EAP-TEAP') {
+        if (devices <= 5000) {
+            return Math.max(24, calculatedMemory);
+        } else if (devices <= 10000) {
+            return Math.max(32, calculatedMemory);
+        } else if (devices <= 15000) {
+            return Math.max(48, calculatedMemory);
+        } else if (devices <= 20000) {
+            return Math.max(64, calculatedMemory);
+        }
+    }
+
     return roundUpToMemorySize(calculatedMemory);
 }
 

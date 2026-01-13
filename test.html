@@ -85,7 +85,7 @@
             const rpsWithHeadroom = rpsWithGateway * (1 + inputs.headroom / 100);
             
             let targetRps = rpsWithHeadroom;
-            if (inputs.authMethod === 'EAP-TLS' && inputs.ocspEnabled) {
+            if ((inputs.authMethod === 'EAP-TLS' || inputs.authMethod === 'EAP-TEAP') && inputs.ocspEnabled) {
                 targetRps = rpsWithHeadroom * (1 + coeffs.ocspOverheadPct / 100);
             }
             

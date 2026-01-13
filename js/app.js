@@ -269,7 +269,7 @@ function copyToClipboard() {
     text += '• Количество устройств: ' + (inputs.devices || 'N/A') + '\n';
     text += '• Метод аутентификации: ' + (inputs.authMethod || 'N/A') + '\n';
     
-    if (inputs.authMethod === 'EAP-TLS' && inputs.ocspEnabled !== undefined) {
+    if ((inputs.authMethod === 'EAP-TLS' || inputs.authMethod === 'EAP-TEAP') && inputs.ocspEnabled !== undefined) {
         text += '• OCSP проверка: ' + (inputs.ocspEnabled ? 'Включена' : 'Отключена') + '\n';
     }
     if (inputs.authMethod === 'MAB' && inputs.spoofingEnabled !== undefined) {

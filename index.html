@@ -132,6 +132,7 @@
                             <div class="scenario-pill active" data-method="MAB">MAB</div>
                             <div class="scenario-pill" data-method="PEAP">PEAP</div>
                             <div class="scenario-pill" data-method="EAP-TLS">EAP-TLS</div>
+                            <div class="scenario-pill" data-method="EAP-TEAP">EAP-TEAP</div>
                         </div>
                     </div>
                     
@@ -179,7 +180,7 @@
                     <!-- RADIUS Accounting - скрыто, но всегда включено -->
                     <input type="checkbox" checked id="hybridAccountingEnabled" style="display: none;" onchange="updateAccountingDependency()">
                     
-                    <!-- OCSP - только для EAP-TLS -->
+                    <!-- OCSP - для EAP-TLS и EAP-TEAP -->
                     <div class="switch-item" id="ocspOption" style="display: none;">
                         <label class="switch">
                             <input type="checkbox" id="hybridOcspEnabled">
@@ -434,7 +435,8 @@
                                     <span class="result-label" style="font-weight: normal;">Рекомендуемая минимальная память на под:</span>
                                     <span class="result-value"><span id="hybridPodMemLimit">-</span> MiB</span>
                                 </div>
-                                <div class="result-row" style="font-size: 0.9em;">
+                                <!-- Расчетная нагрузка на под - скрыта, доступна в консоли -->
+                                <div class="result-row" style="font-size: 0.9em; display: none;">
                                     <span class="result-label" style="font-weight: normal;">Расчетная нагрузка на под:</span>
                                     <span class="result-value"><span id="hybridRpsPerPod">-</span> req/s</span>
                                 </div>

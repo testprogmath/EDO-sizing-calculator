@@ -64,7 +64,7 @@ function setupScenarioCards() {
             // Показываем/скрываем OCSP
             const ocspOption = document.getElementById('ocspOption');
             if (ocspOption) {
-                if (hybridSelectedMethod === 'EAP-TLS') {
+                if (hybridSelectedMethod === 'EAP-TLS' || hybridSelectedMethod === 'EAP-TEAP') {
                     ocspOption.style.display = 'flex';
                 } else {
                     ocspOption.style.display = 'none';
@@ -207,9 +207,9 @@ function applyPreset(type) {
     // Показываем/скрываем OCSP и MAC-спуфинг
     const ocspOption = document.getElementById('ocspOption');
     const spoofingOption = document.getElementById('spoofingOption');
-    
+
     if (ocspOption) {
-        if (hybridSelectedMethod === 'EAP-TLS') {
+        if (hybridSelectedMethod === 'EAP-TLS' || hybridSelectedMethod === 'EAP-TEAP') {
             ocspOption.style.display = 'flex';
         } else {
             ocspOption.style.display = 'none';
@@ -688,8 +688,9 @@ function exportToPDF() {
     
     const authMethodRu = {
         'MAB': 'MAC-адрес',
-        'PEAP': 'PEAP (MS-CHAPv2)', 
-        'EAP-TLS': 'EAP-TLS'
+        'PEAP': 'PEAP (MS-CHAPv2)',
+        'EAP-TLS': 'EAP-TLS',
+        'EAP-TEAP': 'EAP-TEAP'
     };
 
     const docDefinition = {
@@ -753,7 +754,7 @@ function exportToPDF() {
             {
                 ul: [
                     '✅ RADIUS Accounting включен (обязателен для всех методов)',
-                    ...(inputs.authMethod === 'EAP-TLS' ? [inputs.ocspEnabled ? '✅ OCSP проверка сертификатов включена' : '❌ OCSP проверка сертификатов отключена'] : []),
+                    ...((inputs.authMethod === 'EAP-TLS' || inputs.authMethod === 'EAP-TEAP') ? [inputs.ocspEnabled ? '✅ OCSP проверка сертификатов включена' : '❌ OCSP проверка сертификатов отключена'] : []),
                     ...(inputs.authMethod === 'MAB' ? [inputs.spoofingEnabled ? '✅ Защита от MAC-спуфинга включена (требует RADIUS Accounting)' : '❌ Защита от MAC-спуфинга отключена'] : []),
                     ...(isCIEnabled ? ['✅ Config Inspector (CI) включен - мониторинг конфигураций устройств'] : [])
                 ],
@@ -793,7 +794,7 @@ function exportToPDF() {
                         [{text: 'Компонент', style: 'tableHeaderCell'}, {text: 'Характеристики', style: 'tableHeaderCell'}],
                         ['Количество устройств', deviceCount],
                         ['Метод аутентификации', authMethodRu[inputs.authMethod] || inputs.authMethod],
-                        ...(inputs.authMethod === 'EAP-TLS' ? [['OCSP проверка сертификатов', inputs.ocspEnabled ? 'Включена' : 'Отключена']] : []),
+                        ...((inputs.authMethod === 'EAP-TLS' || inputs.authMethod === 'EAP-TEAP') ? [['OCSP проверка сертификатов', inputs.ocspEnabled ? 'Включена' : 'Отключена']] : []),
                         ...(inputs.authMethod === 'MAB' ? [['MAC-спуфинг защита', inputs.spoofingEnabled ? 'Включена' : 'Отключена']] : []),
                         [{text: '', colSpan: 2}, ''],
                         [{text: 'Операционная система', style: 'bold'}, 'Astra Linux Special Edition, РЕД ОС (сертифицированные)'],

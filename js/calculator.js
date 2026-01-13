@@ -80,9 +80,9 @@ function performCalculations(inputs, ciData = null) {
     // 4. RPS с учетом Headroom
     const rpsWithHeadroom = rpsWithGateway * (1 + inputs.headroom / 100);
     
-    // 5. Итоговый RPS (с учетом OCSP для EAP-TLS)
+    // 5. Итоговый RPS (с учетом OCSP для EAP-TLS и EAP-TEAP)
     let targetRps = rpsWithHeadroom;
-    if (inputs.authMethod === 'EAP-TLS' && inputs.ocspEnabled) {
+    if ((inputs.authMethod === 'EAP-TLS' || inputs.authMethod === 'EAP-TEAP') && inputs.ocspEnabled) {
         targetRps = rpsWithHeadroom * (1 + coeffs.ocspOverheadPct / 100);
     }
     
@@ -356,7 +356,7 @@ function exportToCSV() {
     if (inputs.authMethod) {
         csv += '\nКонфигурация\n';
         csv += 'Метод аутентификации,' + inputs.authMethod + '\n';
-        if (inputs.authMethod === 'EAP-TLS') {
+        if (inputs.authMethod === 'EAP-TLS' || inputs.authMethod === 'EAP-TEAP') {
             csv += 'OCSP проверка сертификатов,' + (inputs.ocspEnabled ? 'Включена' : 'Отключена') + '\n';
         }
         if (inputs.authMethod === 'MAB') {
@@ -452,7 +452,7 @@ function copyToClipboard() {
     let text = 'Результаты расчета калькулятора NAC\n';
     text += '=====================================\n\n';
     text += 'Конфигурация: ' + results.inputs.devices + ' устройств, ' + results.inputs.authMethod;
-    if (results.inputs.authMethod === 'EAP-TLS' && results.inputs.ocspEnabled) {
+    if ((results.inputs.authMethod === 'EAP-TLS' || results.inputs.authMethod === 'EAP-TEAP') && results.inputs.ocspEnabled) {
         text += ' с OCSP';
     }
     text += '\n\n';
@@ -504,9 +504,10 @@ function calculateDatabaseRequirements(inputs, targetRps) {
     
     // Коэффициенты нагрузки на СУБД в зависимости от метода аутентификации
     const dbLoadCoefficients = {
-        'MAB': 0.3,     // MAC адреса - легкие операции
-        'PEAP': 0.6,    // Проверка пароля - средние операции  
-        'EAP-TLS': 0.8  // Сертификаты - тяжелые операции
+        'MAB': 0.3,       // MAC адреса - легкие операции
+        'PEAP': 0.6,      // Проверка пароля - средние операции
+        'EAP-TLS': 0.8,   // Сертификаты - тяжелые операции
+        'EAP-TEAP': 0.85  // Туннелированная аутентификация - тяжелые операции
     };
     
     const loadCoeff = dbLoadCoefficients[inputs.authMethod] || 0.5;
