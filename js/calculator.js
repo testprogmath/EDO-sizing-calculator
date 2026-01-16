@@ -373,6 +373,15 @@ function exportToCSV() {
     csv += 'Минимальная частота CPU (ГГц),≥2.0\n';
     csv += 'Память на ноду (GiB),' + results.nodeMemory + '\n';
     csv += 'Хранилище на ноду (GB),' + results.nodeStorage + '\n';
+
+    // Расчёт и добавление данных о хранилище сессий
+    if (typeof calculateSessionStorageRequirements === 'function') {
+        const storageReqs = calculateSessionStorageRequirements(inputs);
+        csv += 'Из них для данных о сессиях (ГБ),' + storageReqs.sessionStorageGb.toFixed(2) + '\n';
+        csv += 'Подключений на устройство в день,' + storageReqs.authAttemptsPerDay + '\n';
+        csv += 'Период хранения данных (дней),' + storageReqs.retentionDays + '\n';
+    }
+
     csv += 'Общий CPU на кластер (vCPU),' + results.totalCpu + '\n';
     csv += 'Общая память на кластер (GiB),' + results.totalMemory + '\n';
     csv += '\nТехнические показатели\n';
@@ -496,12 +505,11 @@ function calculateDatabaseRequirements(inputs, targetRps) {
         postgresql: "15+",
         cpu: 4,
         memory: 16,
-        storage: 500,
         network: "1 Gbps",
         backup: "RPO ≤ 24ч",
         monitoring: "Prometheus + Grafana"
     };
-    
+
     // Коэффициенты нагрузки на СУБД в зависимости от метода аутентификации
     const dbLoadCoefficients = {
         'MAB': 0.3,       // MAC адреса - легкие операции
@@ -509,36 +517,118 @@ function calculateDatabaseRequirements(inputs, targetRps) {
         'EAP-TLS': 0.8,   // Сертификаты - тяжелые операции
         'EAP-TEAP': 0.85  // Туннелированная аутентификация - тяжелые операции
     };
-    
+
     const loadCoeff = dbLoadCoefficients[inputs.authMethod] || 0.5;
     const dbLoad = targetRps * loadCoeff;
-    
-    // Масштабирование ресурсов в зависимости от нагрузки
+
+    // Масштабирование CPU и памяти в зависимости от нагрузки
     let scaledCpu = baseRequirements.cpu;
     let scaledMemory = baseRequirements.memory;
-    let scaledStorage = baseRequirements.storage;
-    
-    // Увеличиваем ресурсы при высокой нагрузке
+
     if (dbLoad > 50) {
         scaledCpu = Math.max(8, Math.ceil(dbLoad / 25) * 2);
         scaledMemory = Math.max(32, Math.ceil(dbLoad / 25) * 8);
-        scaledStorage = Math.max(1000, Math.ceil(dbLoad / 10) * 100);
     } else if (dbLoad > 20) {
         scaledCpu = 6;
         scaledMemory = 24;
-        scaledStorage = 750;
     }
-    
-    
+
+    // Расчёт хранилища на основе реальных данных о сессиях
+    // Формула: max(100, sessionStorage × (1 + dbHeadroom/100)) - минимум 100 ГБ
+    const storageReqs = calculateSessionStorageRequirements(inputs);
+    const dbHeadroom = inputs.dbHeadroom || 20; // По умолчанию 20%
+    const rawStorage = storageReqs.sessionStorageGb * (1 + dbHeadroom / 100);
+    const calculatedStorage = Math.max(100, Math.ceil(rawStorage));
+
+    console.log('💾 DB Storage Calculation:', {
+        sessionStorageGb: storageReqs.sessionStorageGb.toFixed(2) + ' ГБ',
+        dbHeadroom: dbHeadroom + '%',
+        multiplier: (1 + dbHeadroom / 100).toFixed(2),
+        rawStorage: rawStorage.toFixed(2) + ' ГБ',
+        finalStorage: calculatedStorage + ' ГБ',
+        roundedToMinimum: rawStorage < 100 ? '⚠️ Округлено до минимума 100 ГБ' : '✓ Использовано расчётное значение'
+    });
+
     return {
         postgresql: baseRequirements.postgresql,
         cpu: scaledCpu,
         memory: scaledMemory,
-        storage: scaledStorage,
+        storage: calculatedStorage,
         network: baseRequirements.network,
         backup: baseRequirements.backup,
         monitoring: baseRequirements.monitoring,
         dbLoad: dbLoad.toFixed(1),
-        scenario: inputs.authMethod + (inputs.ocspEnabled ? ' + OCSP' : '')
+        scenario: inputs.authMethod + (inputs.ocspEnabled ? ' + OCSP' : ''),
+        sessionStorageGb: storageReqs.sessionStorageGb
+    };
+}
+
+/**
+ * Рассчитывает объём хранилища для данных о сессиях в БД
+ * Формула: (devices * authAttemptsPerDay * retentionDays * bytesPerSession) / (1024^3)
+ * @param {Object} inputs - входные параметры
+ * @returns {Object} - объект с расчётами хранилища
+ */
+function calculateSessionStorageRequirements(inputs) {
+    const dbStorageCoeffs = COEFFICIENTS.dbStorage;
+    const methodCoeffs = dbStorageCoeffs[inputs.authMethod];
+
+    if (!methodCoeffs) {
+        console.warn('No storage coefficients for auth method:', inputs.authMethod);
+        return { sessionStorageGb: 0, sessionStorageGbPerNode: 0 };
+    }
+
+    // Получаем параметры из входных данных или используем значения по умолчанию
+    const authAttemptsPerDay = inputs.authAttemptsPerDay || dbStorageCoeffs.defaultAuthAttemptsPerDay;
+    const retentionDays = inputs.retentionDays || dbStorageCoeffs.defaultRetentionDays;
+    const devices = inputs.devices;
+
+    // Определяем размер данных на одну сессию в зависимости от метода и опций
+    let bytesPerSession = 0;
+
+    if (inputs.authMethod === 'MAB') {
+        if (inputs.spoofingEnabled) {
+            // MAB с MAC-spoofing
+            bytesPerSession = methodCoeffs.bytesPerSessionSpoofing;
+        } else {
+            // MAB без MAC-spoofing (auth + accounting)
+            bytesPerSession = methodCoeffs.bytesPerSession;
+        }
+    } else {
+        // PEAP, EAP-TLS, EAP-TEAP: auth + accounting
+        bytesPerSession = methodCoeffs.bytesPerAuthAttempt + dbStorageCoeffs.bytesPerAccountingSession;
+
+        // Добавляем OCSP для EAP-TLS и EAP-TEAP если включен
+        if ((inputs.authMethod === 'EAP-TLS' || inputs.authMethod === 'EAP-TEAP') && inputs.ocspEnabled) {
+            bytesPerSession += dbStorageCoeffs.bytesPerAuthOCSPCheck;
+        }
+    }
+
+    // Расчёт общего объёма в байтах
+    const totalBytes = devices * authAttemptsPerDay * retentionDays * bytesPerSession;
+
+    // Конвертация в гигабайты (делим на 1024^3)
+    const sessionStorageGb = totalBytes / (1024 * 1024 * 1024);
+
+    // Расчёт на одну ноду
+    const sessionStorageGbPerNode = sessionStorageGb / inputs.nodeCount;
+
+    console.log('📊 Session Storage Calculation:', {
+        authMethod: inputs.authMethod,
+        devices: devices,
+        authAttemptsPerDay: authAttemptsPerDay,
+        retentionDays: retentionDays,
+        bytesPerSession: bytesPerSession,
+        totalBytes: totalBytes,
+        sessionStorageGb: sessionStorageGb.toFixed(2),
+        sessionStorageGbPerNode: sessionStorageGbPerNode.toFixed(2)
+    });
+
+    return {
+        sessionStorageGb: sessionStorageGb,
+        sessionStorageGbPerNode: sessionStorageGbPerNode,
+        bytesPerSession: bytesPerSession,
+        authAttemptsPerDay: authAttemptsPerDay,
+        retentionDays: retentionDays
     };
 }

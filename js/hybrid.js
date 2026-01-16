@@ -102,7 +102,7 @@ function setupScenarioCards() {
 }
 
 function setupInputListeners() {
-    const inputs = document.querySelectorAll('#hybridDevices, #hybridConcurrent, #hybridBurstWindow, #hybridHeadroom, #hybridNodeCount');
+    const inputs = document.querySelectorAll('#hybridDevices, #hybridConcurrent, #hybridBurstWindow, #hybridHeadroom, #hybridNodeCount, #hybridAuthAttemptsPerDay, #hybridRetentionDays, #hybridDbHeadroom');
     const checkboxes = document.querySelectorAll('#hybridOcspEnabled, #hybridAccountingEnabled, #hybridSpoofingEnabled');
     
     // Специальный обработчик для поля устройств
@@ -406,6 +406,15 @@ function getHybridInputValues() {
         }
     }
     
+    // Получаем параметры для расчёта хранилища БД
+    const authAttemptsPerDayEl = document.getElementById('hybridAuthAttemptsPerDay');
+    const retentionDaysEl = document.getElementById('hybridRetentionDays');
+    const dbHeadroomEl = document.getElementById('hybridDbHeadroom');
+
+    const authAttemptsPerDay = authAttemptsPerDayEl ? parseInt(authAttemptsPerDayEl.value) || 2 : 2;
+    const retentionDays = retentionDaysEl ? parseInt(retentionDaysEl.value) || 14 : 14;
+    const dbHeadroom = dbHeadroomEl ? parseInt(dbHeadroomEl.value) || 20 : 20;
+
     return {
         devices: devices,
         authMethod: hybridSelectedMethod,
@@ -417,7 +426,10 @@ function getHybridInputValues() {
         headroom: parseFloat(document.getElementById('hybridHeadroom').value),
         gatewayEnabled: true,  // Всегда включен
         gatewayOverhead: 10,   // Всегда 10%
-        nodeCount: nodeCount
+        nodeCount: nodeCount,
+        authAttemptsPerDay: authAttemptsPerDay,
+        retentionDays: retentionDays,
+        dbHeadroom: dbHeadroom
     };
 }
 
@@ -482,6 +494,16 @@ function displayHybridResults(results, ciData = null) {
     document.getElementById('hybridServerCpu').textContent = serverTotalCpu;
     document.getElementById('hybridServerMemory').textContent = serverTotalMemory;
     document.getElementById('hybridServerStorage').textContent = serverTotalStorage;
+
+    // Расчёт и отображение объёма данных о сессиях
+    if (typeof calculateSessionStorageRequirements === 'function') {
+        const storageReqs = calculateSessionStorageRequirements(inputs);
+        const sessionStorageEl = document.getElementById('hybridSessionStorageGb');
+        if (sessionStorageEl) {
+            // Показываем общий объём на весь кластер, округлённый до 2 знаков
+            sessionStorageEl.textContent = storageReqs.sessionStorageGb.toFixed(2);
+        }
+    }
     document.getElementById('hybridDbCpu').textContent = results.dbRequirements.cpu;
     document.getElementById('hybridDbMemory').textContent = results.dbRequirements.memory;
     document.getElementById('hybridDbStorage').textContent = results.dbRequirements.storage;
@@ -820,23 +842,52 @@ function exportToPDF() {
                 table: {
                     headerRows: 1,
                     widths: ['33%', '33%', '34%'],
-                    body: [
-                        [
-                            {text: 'Компонент', style: 'tableHeaderCell'},
-                            {text: 'Сервер NAC', style: 'tableHeaderCell'},
-                            {text: 'Сервер БД', style: 'tableHeaderCell'}
-                        ],
-                        ['Процессор', `${results.totalCpu} ядер (≥2.0 ГГц)`, `${results.dbRequirements.cpu} ядер (≥2.0 ГГц)`],
-                        ['Оперативная память', `${results.totalMemory} ГБ`, `${results.dbRequirements.memory} ГБ`],
-                        ['Дисковое пространство', `${results.nodeStorage * inputs.nodeCount} ГБ SSD`, `${results.dbRequirements.storage} ГБ SSD`],
-                        ['Сетевой интерфейс', '1 Гбит/с', '1 Гбит/с'],
-                        ['Операционная система', 'Linux (Astra/РЕД ОС)', 'Linux (Astra/РЕД ОС)'],
-                        ['Kubernetes узлы', `${inputs.nodeCount} шт`, 'Внешний сервис']
-                    ]
+                    body: (() => {
+                        const tableBody = [
+                            [
+                                {text: 'Компонент', style: 'tableHeaderCell'},
+                                {text: 'Сервер NAC', style: 'tableHeaderCell'},
+                                {text: 'Сервер БД', style: 'tableHeaderCell'}
+                            ],
+                            ['Процессор', `${results.totalCpu} ядер (≥2.0 ГГц)`, `${results.dbRequirements.cpu} ядер (≥2.0 ГГц)`],
+                            ['Оперативная память', `${results.totalMemory} ГБ`, `${results.dbRequirements.memory} ГБ`],
+                            ['Дисковое пространство', `${results.nodeStorage * inputs.nodeCount} ГБ SSD`, `${results.dbRequirements.storage} ГБ SSD`]
+                        ];
+                        // Добавляем строку с данными о хранилище сессий (в колонке БД)
+                        if (typeof calculateSessionStorageRequirements === 'function') {
+                            const storageReqs = calculateSessionStorageRequirements(inputs);
+                            tableBody.push([{text: '↳ из них для данных о сессиях', style: 'notes', color: '#666'}, '-', `${storageReqs.sessionStorageGb.toFixed(2)} ГБ`]);
+                        }
+                        tableBody.push(
+                            ['Сетевой интерфейс', '1 Гбит/с', '1 Гбит/с'],
+                            ['Операционная система', 'Linux (Astra/РЕД ОС)', 'Linux (Astra/РЕД ОС)'],
+                            ['Kubernetes узлы', `${inputs.nodeCount} шт`, 'Внешний сервис']
+                        );
+                        return tableBody;
+                    })()
                 },
                 layout: 'lightHorizontalLines',
                 margin: [0, 0, 0, 20]
             },
+
+            // Параметры хранения данных БД
+            ...(typeof calculateSessionStorageRequirements === 'function' ? [{
+                text: 'Параметры хранения данных о сессиях в БД:',
+                style: 'normal',
+                margin: [0, 0, 0, 5]
+            },
+            {
+                ul: (() => {
+                    const storageReqs = calculateSessionStorageRequirements(inputs);
+                    return [
+                        `Подключений на устройство в день: ${storageReqs.authAttemptsPerDay}`,
+                        `Период хранения данных: ${storageReqs.retentionDays} дней`,
+                        `Объём данных о сессиях на кластер: ${storageReqs.sessionStorageGb.toFixed(2)} ГБ`
+                    ];
+                })(),
+                style: 'normal',
+                margin: [20, 0, 0, 15]
+            }] : []),
 
             // Текст о системных ресурсах перед примечаниями
             {

@@ -36,7 +36,7 @@ const COEFFICIENTS = {
         requestRatio: 0.6,                // Соотношение request/limit
         // Минимальные требования согласно документации (Таблица 3)
         minNodeCpu: 8,                    // Минимум 8 ядер на узел
-        recommendedNodeCpu: 16,           // Рекомендуется 16 ядер на узел  
+        recommendedNodeCpu: 16,           // Рекомендуется 16 ядер на узел
         minNodeMemory: 32,                // Минимум 32 ГБ памяти на узел
         recommendedNodeMemory: 64,        // Рекомендуется 64 ГБ памяти на узел
         minNodeCount: 3,                  // Минимум 3 узла для работы ПК
@@ -47,6 +47,33 @@ const COEFFICIENTS = {
         spoofingRpsReduction: 0.741,      // RPS уменьшается до 74.1% от исходного (20/27 ≈ 0.741)
         spoofingCpuOverhead: 1.273,       // CPU увеличивается еще на 27.3% (поверх accounting)
         spoofingMemOverhead: 1.25         // RAM увеличивается еще на 25% (поверх accounting)
+    },
+
+    // Коэффициенты для расчета хранилища БД (данные о сессиях)
+    dbStorage: {
+        // Общие коэффициенты
+        bytesPerAccountingSession: 519,       // Средний объём одной accounting-сессии в acs.radacct
+        bytesPerAuthOCSPCheck: 441.3,         // Дополнительный объём для OCSP проверки (EAP-TLS и TEAP)
+
+        // Коэффициенты по методам аутентификации
+        'MAB': {
+            bytesPerAuthAttempt: 9248,        // Средний объём данных на одну попытку аутентификации MAB
+            bytesPerSession: 9767,            // Средний объём данных на одну MAB-сессию без MAC-spoofing
+            bytesPerSessionSpoofing: 19016    // Средний объём данных на одну MAB-сессию с MAC-spoofing
+        },
+        'PEAP': {
+            bytesPerAuthAttempt: 44882        // Средний объём данных на одну аутентификацию PEAP
+        },
+        'EAP-TLS': {
+            bytesPerAuthAttempt: 36016        // Средний объём данных на одну аутентификацию EAP-TLS
+        },
+        'EAP-TEAP': {
+            bytesPerAuthAttempt: 168447       // Средний объём данных на одну аутентификацию TEAP
+        },
+
+        // Значения по умолчанию
+        defaultAuthAttemptsPerDay: 2,         // Количество подключений каждого устройства в день
+        defaultRetentionDays: 14              // Период сохранения данных в БД, дней
     }
 };
 
