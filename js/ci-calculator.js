@@ -391,52 +391,84 @@ function processCIResponse(data) {
         return null;
     }
     
-    // Ищем строку "Итого" с устройством "-" - она уже содержит данные с коэффициентом запаса
-    // Строим индекс ключей для каждого объекта, чтобы устойчиво извлекать поля
-    const rowsWithIndex = parsedData.map((item) => ({ item, idx: buildKeyIndex(item) }));
-    const totalRowEntry = rowsWithIndex.find(({ item, idx }) => getField(item, idx, 'Устройства') === '-');
-    const totalRow = totalRowEntry ? totalRowEntry.item : null;
-    const totalIdx = totalRowEntry ? totalRowEntry.idx : {};
+    // Новый формат API: массив с детализацией по типам устройств
+    // Проверяем, есть ли итоговая строка с device_type = "-"
+    const totalRow = parsedData.find(item => item.device_type === '-');
     
-    if (!totalRow) {
-        console.error('Не найдена строка "Итого" в ответе CI API');
-        return null;
+    let totalDevices = 0;
+    let totalCpuUsageAvg = 0;
+    let totalCpuUsageMax = 0;
+    let totalMemUsageAvg = 0;
+    let totalMemUsageMax = 0;
+    let totalReportTimePrimary = 0;
+    let totalReportTimeSecondary = 0;
+    
+    if (totalRow) {
+        // Если есть итоговая строка, используем её данные (уже с коэффициентами)
+        totalDevices = totalRow.device_count || 0;
+        totalCpuUsageAvg = totalRow.cpu_avg_cores || 0;
+        totalCpuUsageMax = totalRow.cpu_max_cores || 0;
+        totalMemUsageAvg = totalRow.memory_avg_gb || 0;
+        totalMemUsageMax = totalRow.memory_max_gb || 0;
+        totalReportTimePrimary = totalRow.report_request_duration_primary_h || 0;
+        totalReportTimeSecondary = totalRow.report_request_duration_secondary_h || 0;
+        
+        console.log('Using total row from API response');
+    } else {
+        // Если итоговой строки нет, суммируем сами
+        parsedData.forEach(item => {
+            // Пропускаем, если это итоговая строка (на всякий случай)
+            if (item.device_type === '-') return;
+            
+            const deviceCount = item.device_count || 0;
+            const cpuMax = item.cpu_max_cores || 0;
+            const memMax = item.memory_max_gb || 0;
+            const reportPrimary = item.report_request_duration_primary_h || 0;
+            const reportSecondary = item.report_request_duration_secondary_h || 0;
+            
+            // Суммируем устройства
+            totalDevices += deviceCount;
+            
+            // Для CPU и памяти просто берем максимальные значения
+            // (так как safety_margin_coeff в новом API - это взвешенные доли, а не множители)
+            totalCpuUsageMax = Math.max(totalCpuUsageMax, cpuMax);
+            totalMemUsageMax = Math.max(totalMemUsageMax, memMax);
+            
+            // Время отчетов - берем максимальное из всех типов
+            totalReportTimePrimary = Math.max(totalReportTimePrimary, reportPrimary);
+            totalReportTimeSecondary = Math.max(totalReportTimeSecondary, reportSecondary);
+        });
+        
+        console.log('Calculating totals from individual devices');
     }
     
-    console.log('Found CI Total Row:', totalRow);
-    
-    // Используем данные из строки "Итого" (с учетом возможных вариаций ключей)
-    const totalDevices = getNumber(totalRow, totalIdx, 'Количество устройств') ?? 0;
-    const totalCpuUsageAvg = getNumber(totalRow, totalIdx, 'ЦПУ, срдн., № ядер') ?? 0;
-    const totalCpuUsageMax = getNumber(totalRow, totalIdx, 'ЦПУ, макс., № ядер') ?? 0;
-    const totalMemUsageAvg = getNumber(totalRow, totalIdx, 'Память, срдн., Гб') ?? 0;
-    const totalMemUsageMax = getNumber(totalRow, totalIdx, 'Память, макс., Гб') ?? 0;
-    const totalReportTimePrimary = getNumber(totalRow, totalIdx, 'Длительность запроса отчётов (Первичная)') ?? 0;
-    const totalReportTimeSecondary = getNumber(totalRow, totalIdx, 'Длительность запроса отчётов (Повторная)') ?? 0;
+    console.log('Calculated CI Totals:', {
+        totalDevices,
+        totalCpuUsageMax,
+        totalMemUsageMax,
+        totalReportTimePrimary,
+        totalReportTimeSecondary
+    });
     
     // Проверяем, есть ли валидные данные
     const validDataFound = totalCpuUsageAvg > 0 || totalCpuUsageMax > 0 || totalMemUsageAvg > 0 || totalMemUsageMax > 0;
     
-    // Для отладки выводим информацию о каждом устройстве (кроме итого)
+    // Для отладки выводим информацию о каждом устройстве
     let devicesWithoutData = [];
-    rowsWithIndex.forEach(({ item, idx }) => {
-        // Пропускаем строку итого
-        const devName = getField(item, idx, 'Устройства');
-        if (devName === '-' || devName === null) {
-            return;
-        }
+    parsedData.forEach(item => {
+        // Пропускаем итоговую строку
+        if (item.device_type === '-') return;
         
-        // Для отладки выводим информацию о каждом устройстве
-        const deviceCount = getNumber(item, idx, 'Количество устройств') ?? 0;
-        const deviceType = devName;
+        const deviceType = item.device_type;
+        const deviceCount = item.device_count || 0;
         
-        // Проверяем, есть ли валидные данные (не null)
-        const cpuAvg = getNumber(item, idx, 'ЦПУ, срдн., № ядер');
-        const cpuMax = getNumber(item, idx, 'ЦПУ, макс., № ядер');
-        const memAvg = getNumber(item, idx, 'Память, срдн., Гб');
-        const memMax = getNumber(item, idx, 'Память, макс., Гб');
+        // Проверяем, есть ли валидные данные производительности
+        const cpuAvg = item.cpu_avg_cores;
+        const cpuMax = item.cpu_max_cores;
+        const memAvg = item.memory_avg_gb;
+        const memMax = item.memory_max_gb;
         
-        const hasValidPerformanceData = [cpuAvg, cpuMax, memAvg, memMax].some(Number.isFinite);
+        const hasValidPerformanceData = [cpuAvg, cpuMax, memAvg, memMax].some(val => val > 0);
         
         if (!hasValidPerformanceData && deviceCount > 0) {
             // Устройство есть, но данных производительности нет
@@ -447,12 +479,13 @@ function processCIResponse(data) {
             type: deviceType,
             count: deviceCount,
             hasPerformanceData: hasValidPerformanceData,
-            cpuAvg: Number.isFinite(cpuAvg) ? (cpuAvg + ' vCPU') : '-',
-            cpuMax: Number.isFinite(cpuMax) ? (cpuMax + ' vCPU') : '-', 
-            memAvg: Number.isFinite(memAvg) ? (memAvg + ' GB') : '-',
-            memMax: Number.isFinite(memMax) ? (memMax + ' GB') : '-',
-            reportPrimary: (getNumber(item, idx, 'Длительность запроса отчётов (Первичная)') ?? '-') + ' ч',
-            reportSecondary: (getNumber(item, idx, 'Длительность запроса отчётов (Повторная)') ?? '-') + ' ч'
+            cpuAvg: cpuAvg > 0 ? (cpuAvg + ' vCPU') : '-',
+            cpuMax: cpuMax > 0 ? (cpuMax + ' vCPU') : '-', 
+            memAvg: memAvg > 0 ? (memAvg + ' GB') : '-',
+            memMax: memMax > 0 ? (memMax + ' GB') : '-',
+            reportPrimary: (item.report_request_duration_primary_h || 0) + ' ч',
+            reportSecondary: (item.report_request_duration_secondary_h || 0) + ' ч',
+            safetyMargin: item.safety_margin_coeff || 0
         });
     });
     
@@ -485,11 +518,12 @@ function processCIResponse(data) {
     };
     
     console.log('Processed CI results:', result);
-    console.log('=== CI TOTALS (from Total Row with coeff) ===');
+    console.log('=== CI TOTALS (calculated from individual devices) ===');
     console.log('Total Devices:', totalDevices);
-    console.log('Total CPU Max:', totalCpuUsageMax, 'vCPU (with coefficient)');
-    console.log('Total Memory Max:', totalMemUsageMax, 'GB (with coefficient)');
-    console.log('Coefficient applied:', getField(totalRow, totalIdx, 'Коэффициент безопасного использования'));
+    console.log('Total CPU Max:', totalCpuUsageMax.toFixed(2), 'vCPU (with safety margins applied)');
+    console.log('Total Memory Max:', totalMemUsageMax.toFixed(2), 'GB (with safety margins applied)');
+    console.log('Report Time Primary:', totalReportTimePrimary.toFixed(2), 'hours');
+    console.log('Report Time Secondary:', totalReportTimeSecondary.toFixed(2), 'hours');
     console.log('=============================================');
     lastCIResults = result;
     
