@@ -522,12 +522,16 @@ function calculateDatabaseRequirements(inputs, targetRps) {
     const dbLoad = targetRps * loadCoeff;
 
     // Масштабирование CPU и памяти в зависимости от нагрузки
+    // Используем логарифмическую шкалу для более реалистичного масштабирования
     let scaledCpu = baseRequirements.cpu;
     let scaledMemory = baseRequirements.memory;
 
     if (dbLoad > 50) {
-        scaledCpu = Math.max(8, Math.ceil(dbLoad / 25) * 2);
-        scaledMemory = Math.max(32, Math.ceil(dbLoad / 25) * 8);
+        // Логарифмическое масштабирование для больших нагрузок
+        // CPU: базовое значение + логарифмический рост
+        scaledCpu = Math.min(32, Math.max(8, Math.ceil(8 + Math.log2(dbLoad / 50) * 4)));
+        // Memory: пропорционально CPU с коэффициентом 4-6 ГБ на ядро
+        scaledMemory = Math.min(192, Math.max(32, scaledCpu * 6));
     } else if (dbLoad > 20) {
         scaledCpu = 6;
         scaledMemory = 24;
@@ -605,7 +609,9 @@ function calculateSessionStorageRequirements(inputs) {
     }
 
     // Расчёт общего объёма в байтах
-    const totalBytes = devices * authAttemptsPerDay * retentionDays * bytesPerSession;
+    // authAttemptsPerDay - это количество ПОВТОРНЫХ аутентификаций, поэтому добавляем +1 для учёта первичной
+    const totalAuthsPerDay = authAttemptsPerDay + 1;
+    const totalBytes = devices * totalAuthsPerDay * retentionDays * bytesPerSession;
 
     // Конвертация в гигабайты (делим на 1024^3)
     const sessionStorageGb = totalBytes / (1024 * 1024 * 1024);
@@ -616,7 +622,8 @@ function calculateSessionStorageRequirements(inputs) {
     console.log('📊 Session Storage Calculation:', {
         authMethod: inputs.authMethod,
         devices: devices,
-        authAttemptsPerDay: authAttemptsPerDay,
+        reAuthsPerDay: authAttemptsPerDay,
+        totalAuthsPerDay: totalAuthsPerDay,
         retentionDays: retentionDays,
         bytesPerSession: bytesPerSession,
         totalBytes: totalBytes,

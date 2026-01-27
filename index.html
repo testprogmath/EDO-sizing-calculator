@@ -174,25 +174,41 @@
                         <h4 style="margin: 0 0 12px 0; color: #24A7B3; font-size: 14px;">
                             <span>💾</span> Хранение данных о подключениях
                         </h4>
+                        
+                        <!-- Информационный блок о разнице reconnect vs re-auth -->
+                        <div style="background: #e7f5f6; border-left: 3px solid #24A7B3; padding: 10px 12px; margin-bottom: 15px; font-size: 13px; color: #495057;">
+                            <div style="margin-bottom: 8px;">
+                                <strong>ℹ️ Важно понимать разницу:</strong>
+                            </div>
+                            <div style="margin-bottom: 6px;">
+                                <strong>• Обновление сессии (Session Update)</strong> — обновляет существующую запись через Accounting Start/Stop/Interim-Update. <strong>НЕ создаёт</strong> новых записей.
+                            </div>
+                            <div style="margin-bottom: 6px;">
+                                <strong>• Повторная аутентификация (Re-authentication)</strong> — создаёт новую сессию с новым Session-ID. Генерирует новые записи в БД.
+                            </div>
+                            <div style="color: #6c757d; font-size: 12px; margin-top: 6px;">
+                                Interim-Update интервал влияет только на частоту обновления существующих записей, но не на их количество.
+                            </div>
+                        </div>
                         <div class="form-grid">
                             <div class="form-field">
                                 <label class="form-label">
-                                    Подключений на устройство в день
-                                    <span class="tooltip" data-tooltip="Количество аутентификаций каждого устройства в день. Влияет на объём данных о сессиях в БД">ⓘ</span>
+                                    Повторных аутентификаций на устройство в день
+                                    <span class="tooltip" data-tooltip="Количество событий повторной аутентификации (re-authentication), создающих новые записи в БД. Переподключения (reconnect) и Accounting-обновления НЕ увеличивают число записей">ⓘ</span>
                                 </label>
                                 <input type="number" class="form-input" id="hybridAuthAttemptsPerDay" min="1" max="100" value="2" step="1">
                             </div>
                             <div class="form-field">
                                 <label class="form-label">
-                                    Период хранения данных (дней)
-                                    <span class="tooltip" data-tooltip="Период сохранения данных о сессиях в БД (retention period). Влияет на требуемый объём хранилища">ⓘ</span>
+                                    Период хранения записей (дней)
+                                    <span class="tooltip" data-tooltip="Срок хранения записей аутентификации и трассировки в базе данных до автоматической очистки">ⓘ</span>
                                 </label>
                                 <input type="number" class="form-input" id="hybridRetentionDays" min="1" max="365" value="14" step="1">
                             </div>
                             <div class="form-field">
                                 <label class="form-label">
-                                    Запас по памяти БД, %
-                                    <span class="tooltip" data-tooltip="Дополнительный запас хранилища для индексов, служебных данных и роста. Рекомендуется 20%">ⓘ</span>
+                                    Резерв по объёму БД, %
+                                    <span class="tooltip" data-tooltip="Дополнительный запас для учёта пиковых нагрузок и непредвиденного роста данных">ⓘ</span>
                                 </label>
                                 <input type="number" class="form-input" id="hybridDbHeadroom" min="0" max="100" value="20" step="5">
                             </div>
