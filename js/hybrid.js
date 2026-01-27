@@ -487,9 +487,13 @@ function displayHybridResults(results, ciData = null) {
     const serverTotalCpu = results.totalCpu; // уже рассчитано в calculator.js
     const serverTotalMemory = results.totalMemory; // уже рассчитано в calculator.js
     const serverTotalStorage = results.nodeStorage * inputs.nodeCount;
-    // Обновляем строку "Система (кластер из N узлов)"
+    // Обновляем строку "Система (кластер из N узлов)" и показываем её
     const sysEl = document.getElementById('businessSystemNodes');
     if (sysEl) sysEl.textContent = inputs.nodeCount;
+    const systemRow = document.getElementById('businessSystemRow');
+    if (systemRow) {
+        systemRow.style.display = ''; // Показываем строку для NAC/NAC+CI
+    }
     
     document.getElementById('hybridServerCpu').textContent = serverTotalCpu;
     document.getElementById('hybridServerMemory').textContent = serverTotalMemory;

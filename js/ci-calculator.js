@@ -624,6 +624,12 @@ async function calculateCIOnly() {
         set('hybridServerMemory', roundedMem);
         set('hybridDbCpu', roundedCpu);
         set('hybridDbMemory', roundedMem);
+        
+        // Скрываем строку "кластер из N узлов" для CI-only
+        const systemRow = document.getElementById('businessSystemRow');
+        if (systemRow) {
+            systemRow.style.display = 'none';
+        }
 
         // Переключаем таб на CI
         if (window.switchInfoTab) {
