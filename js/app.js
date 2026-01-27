@@ -170,6 +170,7 @@ function updateCalculatorSections() {
     const dbTooltip = document.getElementById('dbSectionTooltip');
     const ciOnlyBlocks = document.querySelectorAll('.ci-only');
     const hideForCiRows = document.querySelectorAll('.hide-for-ci');
+    const systemRow = document.getElementById('businessSystemRow');
     
     if (isCISelected()) {
         ciSection.style.display = 'block';
@@ -200,6 +201,13 @@ function updateCalculatorSections() {
     hideForCiRows.forEach(el => {
         el.style.display = showCiOnly ? 'none' : '';
     });
+    
+    // Скрываем/показываем строку "кластер из N узлов"
+    // Показываем только если выбран NAC (с CI или без)
+    if (systemRow) {
+        systemRow.style.display = nacVisible ? '' : 'none';
+    }
+    
     // Подсказка у "Сервер СУБД:" — показываем, если выбран CI (в любом сочетании)
     if (dbTooltip) {
         if (isCISelected()) {
